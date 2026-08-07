@@ -1,0 +1,75 @@
+# Operating system
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+*.sublime-workspace
+*.sublime-project
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+auth.json
+*.key
+*.pem
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependencies
+node_modules/
+vendor/
+
+# Builds and generated assets
+dist/
+build/
+coverage/
+.vite/
+public/build/
+public/hot
+public/storage
+
+# Caches
+.cache/
+.phpunit.cache/
+.phpunit.result.cache
+.eslintcache
+.stylelintcache
+
+# Laravel generated files
+bootstrap/cache/*.php
+storage/*.key
+storage/pail/
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+database/*.sqlite*
+
+# Composer
+composer.phar
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.swp
+*.swo
+
+# Local tool state
+.agents/*
+!.agents/.gitkeep
