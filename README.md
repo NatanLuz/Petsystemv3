@@ -1,5 +1,7 @@
 # PetSystem V3 VERSÃO 3
 
+ORQUESTRANDO MELHOR O PROJETO E MUDANDO A STACK
+
 Sistema de gestao para pet shops e clinicas veterinarias, desenvolvido como projeto de portfolio profissional.
 
 O objetivo do PetSystem V3 nao e apenas reproduzir a versao anterior em uma stack nova. Este projeto sera construido modulo por modulo para praticar arquitetura moderna, API REST, Laravel, React, TypeScript, modelagem de banco, boas praticas e evolucao gradual ate producao.
