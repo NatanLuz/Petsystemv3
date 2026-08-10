@@ -228,4 +228,6 @@ O projeto utiliza Git e GitHub para controle de versão, seguindo o padrão de c
 
 **Natan Da Luz**
 
-Projeto desenvolvido para estudo, portfólio e evolução profissional em desenvolvimento de software.
+Linkedin: https://www.linkedin.com/in/natandaluz/
+
+Email: Natandaluz01@gmail.com
