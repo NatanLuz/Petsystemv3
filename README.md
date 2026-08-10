@@ -1,6 +1,6 @@
 # PetSystem V3 VERSÃO 3
 
-ORQUESTRANDO MELHOR O PROJETO E MUDANDO A STACK
+ORQUESTRANDO E MUDANDO A STACK
 
 Sistema de gestao para pet shops e clinicas veterinarias, desenvolvido como projeto de portfolio profissional.
 
