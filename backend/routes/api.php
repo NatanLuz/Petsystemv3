@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\HealthCheckController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,8 @@ Route::get('/health/live', [HealthCheckController::class, 'live']);
 
 // Readiness: confirma que a aplicação está pronta para operar com o banco.
 Route::get('/health/ready', [HealthCheckController::class, 'ready']);
+
+Route::apiResource('clients', ClientController::class);
 
 // Rota de exemplo para usuário autenticado via Sanctum
 Route::get('/user', function (Request $request) {
