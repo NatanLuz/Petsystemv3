@@ -14,7 +14,7 @@ O objetivo é permitir o gerenciamento de informações como clientes, pets, ser
 
 Este projeto também é utilizado como projeto de estudo e portfólio, com o propósito de demonstrar conhecimentos em desenvolvimento backend, APIs REST, frontend React, banco de dados relacional, autenticação, arquitetura de software, Git e boas práticas de desenvolvimento.
 
-## Stack
+## Stack Do Projeto
 
 ### Backend
 
