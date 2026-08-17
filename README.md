@@ -1,11 +1,5 @@
 ## Petsystemv3
 
-## 📌 Status do Projeto
-
-Projeto em desenvolvimento, com evolução contínua da arquitetura e das funcionalidades.
-
-O PetSystem V3 está passando por uma reconstrução completa, com uma nova arquitetura moderna que separa backend, frontend e banco de dados. O projeto está sendo desenvolvido de forma incremental, e este README será atualizado conforme novas funcionalidades forem implementadas.
-
 ## Descrição
 
 O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas veterinárias, desenvolvido com uma arquitetura separada entre backend e frontend.
