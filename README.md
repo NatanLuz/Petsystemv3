@@ -36,7 +36,7 @@ Este projeto também é utilizado como projeto de estudo e portfólio, com o pro
 | React Router | Roteamento entre páginas |
 | Axios | Consumo da API REST |
 
-### Banco de dados
+## Banco de dados
 
 | Tecnologia | Finalidade |
 |---|---|
@@ -94,7 +94,7 @@ O frontend React consome os endpoints disponibilizados pela API Laravel através
 
 ## Funcionalidades
 
-### Em desenvolvimento
+## Em desenvolvimento
 
 - Estrutura inicial do projeto
 - Backend Laravel
@@ -102,7 +102,7 @@ O frontend React consome os endpoints disponibilizados pela API Laravel através
 - Configuração da API
 - Configuração do PostgreSQL
 
-### Planejado
+## Planejado
 
 - Autenticação de usuários
 - Login e logout
@@ -185,7 +185,7 @@ O PetSystem V3 busca aplicar, ao longo do seu desenvolvimento:
 
 > Os comandos específicos de instalação e execução serão atualizados conforme a estrutura definitiva do projeto for implementada.
 
-### Backend
+## Backend
 
 Será necessário ter instalado:
 
@@ -193,7 +193,7 @@ Será necessário ter instalado:
 - Composer
 - PostgreSQL
 
-### Frontend
+## Frontend
 
 Será necessário ter instalado:
 
