@@ -1,6 +1,6 @@
-# Guia de Contribuição — PETSYSTEM V3
+## Guia de Contribuição — PETSYSTEM V3
 
-Obrigado por contribuir com o **PETSYSTEM V3**! Este documento orienta o fluxo de trabalho e as boas práticas aceitas no repositório.
+Obrigado por contribuir com o **PETSYSTEM V3**! Este documento feito para orientar o fluxo de trabalho e as boas práticas aceitas no repositório.
 
 ## 📌 Regras Principais
 
@@ -31,7 +31,7 @@ Utilizamos o padrão de **Commits Semânticos**:
 - `test:` — Adição ou ajuste de testes
 - `chore:` — Tarefas de manutenção geral
 
-### Regras de Versionamento:
+## Regras de Versionamento:
 - **NUNCA** fazer commit de arquivos `.env` ou credenciais de acesso.
 - **NUNCA** utilizar `git push --force`.
 - Sempre testar localmente antes de abrir Pull Requests.
