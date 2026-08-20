@@ -154,27 +154,6 @@ O PetSystem V3 busca aplicar, ao longo do seu desenvolvimento:
 - Testes automatizados
 - Documentação técnica
 
-## Roadmap
-
-- [ ] Definição da arquitetura
-- [ ] Configuração do Laravel
-- [ ] Configuração do PostgreSQL
-- [ ] Estrutura inicial da API
-- [ ] Autenticação com Sanctum
-- [ ] Módulo de usuários
-- [ ] Módulo de clientes
-- [ ] Módulo de pets
-- [ ] Módulo de serviços
-- [ ] Módulo de agendamentos
-- [ ] Estrutura inicial do React
-- [ ] Rotas do frontend
-- [ ] Integração React + Laravel
-- [ ] Dashboard
-- [ ] Testes
-- [ ] Revisão de segurança
-- [ ] Documentação final
-- [ ] Deploy
-
 ## Instalação
 
 > Os comandos específicos de instalação e execução serão atualizados conforme a estrutura definitiva do projeto for implementada.
