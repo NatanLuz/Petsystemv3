@@ -1,6 +1,6 @@
 ## Petsystem v3
 
-## Descrição (PROJETO SENDO DESENVOLVIDO)
+## Descrição sobre o projeto 
 
 O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas veterinárias, desenvolvido com uma arquitetura separada entre backend e frontend.
 
