@@ -1,4 +1,4 @@
-# Changelog — PETSYSTEM V3
+# Changelog PETSYSTEM V3
 
 Todas as alterações relevantes neste projeto serão documentadas neste arquivo.
 
@@ -6,7 +6,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
-### Adicionado
+## Adicionado
 - Módulos de negócio (a serem implementados incrementalmente nas próximas etapas).
 
 ## [0.1.0] - 2026-08-11
