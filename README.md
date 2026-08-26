@@ -8,7 +8,7 @@ O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas ve
 
 ### Backend
 
-| Tecnologia | Finalidade |
+| Tecnologia |
 |---|---|
 | PHP | Linguagem principal do backend |
 | Laravel | Framework backend |
