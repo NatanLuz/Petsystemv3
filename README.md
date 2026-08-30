@@ -31,7 +31,7 @@ O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas ve
 
 | Tecnologia | Finalidade |
 |---|---|
-| PostgreSQL | Banco de dados relacional |
+| MySQL | Banco de dados do projeto |
 
 > O frontend é desenvolvido exclusivamente com JavaScript e JSX.
 
