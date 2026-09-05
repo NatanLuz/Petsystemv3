@@ -55,14 +55,14 @@ PetSystem V3
 ├── docs/
 │   └── documentação
 │
-└── PostgreSQL
+└── MySQL
 ```
 
 **Responsabilidade de cada camada:**
 
 - **Backend (Laravel/PHP):** responsável por expor a API REST, aplicar as regras de negócio, gerenciar autenticação e realizar a comunicação com o banco de dados através do Eloquent ORM.
 - **Frontend (React):** responsável pela interface do usuário, consumindo os dados fornecidos pela API através de requisições HTTP feitas com Axios.
-- **Banco de dados (PostgreSQL):** responsável pelo armazenamento persistente das informações do sistema.
+- **Banco de dados (MySQL):** responsável pelo armazenamento persistente das informações do sistema.
 - **docs/:** reúne a documentação técnica do projeto.
 
 ## Comunicação entre as camadas
@@ -78,10 +78,10 @@ Laravel REST API
   ↓
 Eloquent ORM
   ↓
-PostgreSQL
+MySQL
 ```
 
-O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados PostgreSQL.
+O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados MySQL.
 
 ## Funcionalidades
 
@@ -91,7 +91,7 @@ O frontend React consome os endpoints disponibilizados pela API Laravel através
 - Backend Laravel
 - Frontend React
 - Configuração da API
-- Configuração do PostgreSQL
+- Configuração do MySQL
 
 ## Planejado
 
@@ -161,7 +161,7 @@ Será necessário ter instalado:
 
 - PHP
 - Composer
-- PostgreSQL
+- MySQL
 
 ## Frontend
 
