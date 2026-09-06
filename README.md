@@ -61,8 +61,11 @@ PetSystem V3
 **Responsabilidade de cada camada:**
 
 - **Backend (Laravel/PHP):** responsável por expor a API REST, aplicar as regras de negócio, gerenciar autenticação e realizar a comunicação com o banco de dados através do Eloquent ORM.
+
 - **Frontend (React):** responsável pela interface do usuário, consumindo os dados fornecidos pela API através de requisições HTTP feitas com Axios.
+
 - **Banco de dados (MySQL):** responsável pelo armazenamento persistente das informações do sistema.
+
 - **docs/:** reúne a documentação técnica do projeto.
 
 ## Comunicação entre as camadas
