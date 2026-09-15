@@ -46,7 +46,7 @@ PetSystem V3
 │       └── Laravel Sanctum
 │
 ├── frontend/
-│   └── React + JavaScript
+│   └── React
 │       ├── Vite
 │       ├── React Router
 │       └── Axios
