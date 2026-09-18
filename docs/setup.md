@@ -4,15 +4,15 @@ Este documento instrui a preparação do ambiente de desenvolvimento local para 
 
 ## 🛠️ Requisitos de Software
 
-- **PHP**: 8.2 ou superior (com extensão `pdo_pgsql` habilitada no `php.ini`)
+- **PHP**: 8.2 ou superior (com extensão `pdo_mysql` habilitada no `php.ini`)
 - **Composer**: 2.x
 - **Node.js**: 18+ (recomendado 20+)
-- **PostgreSQL**: 14+ rodando na porta 5432
+- **MySQL** rodando na porta 3306
 - **Git**
 
 ---
 
-## 🐘 ETAPA 1: Configuração do Backend (Laravel)
+## 🐬 ETAPA 1: Configuração do Backend (Laravel)
 
 1. Entre no diretório do backend:
    ```bash
@@ -27,16 +27,16 @@ Este documento instrui a preparação do ambiente de desenvolvimento local para 
    cp .env.example .env
    php artisan key:generate
    ```
-4. Ajuste as credenciais do PostgreSQL no `.env`:
+4. Ajuste as credenciais do MySQL no `.env`:
    ```env
-   DB_CONNECTION=pgsql
+   DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
-   DB_PORT=5432
+   DB_PORT=3306
    DB_DATABASE=petsystem_v3
-   DB_USERNAME=postgres
-   DB_PASSWORD=sua_senha
+   DB_USERNAME=root
+   DB_PASSWORD=
    ```
-5. Execute as migrations para criar as tabelas no PostgreSQL:
+5. Execute as migrations para criar as tabelas no MySQL:
    ```bash
    php artisan migrate
    ```
@@ -79,6 +79,6 @@ Este documento instrui a preparação do ambiente de desenvolvimento local para 
 Para confirmar que a comunicação entre React e Laravel está funcionando:
 1. Com o backend rodando na porta 8000, verifique se a aplicação está viva:
    `GET http://127.0.0.1:8000/api/health/live`
-2. Verifique se a aplicação está pronta e conectada ao PostgreSQL:
+2. Verifique se a aplicação está pronta e conectada ao MySQL:
    `GET http://127.0.0.1:8000/api/health/ready`
 3. No frontend, navegue até a tela de verificação de status para observar o consumo da API via Axios em tempo real.

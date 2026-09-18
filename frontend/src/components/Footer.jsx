@@ -10,7 +10,7 @@ export default function Footer() {
       marginTop: 'auto',
       fontSize: '0.9rem'
     }}>
-      <p>PETSYSTEM V3 &copy; {new Date().getFullYear()} — Arquitetura REST (Laravel + React + PostgreSQL)</p>
+      <p>PETSYSTEM V3 &copy; {new Date().getFullYear()} — Arquitetura REST (Laravel + React + MySQL)</p>
     </footer>
   );
 }

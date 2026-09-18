@@ -1,6 +1,6 @@
 ## PROJETO Petsystem V3
 
-## Descrição sobre o projeto 
+## Descrição sobre o projeto
 
 O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas veterinárias, desenvolvido com uma arquitetura separada entre backend e frontend. O objetivo é permitir o gerenciamento de informações como clientes, pets, serviços e agendamentos, além de autenticação e controle de acesso. Este projeto também é utilizado como projeto de estudo e portfólio, com o propósito de demonstrar conhecimentos em desenvolvimento backend, APIs REST, frontend React, banco de dados relacional, autenticação, arquitetura de software, Git e boas práticas de desenvolvimento. Sempre de maneira limpa e clara.
 
@@ -122,8 +122,6 @@ pet-system-v3/
 ├── frontend/
 ├── docs/
 ├── README.md
-├── CONTRIBUTING.md
-├── CHANGELOG.md
 └── .gitignore
 ```
 
@@ -131,8 +129,6 @@ pet-system-v3/
 - **frontend/:** código-fonte da aplicação React.
 - **docs/:** documentação técnica do projeto.
 - **README.md:** apresentação geral do projeto.
-- **CONTRIBUTING.md:** diretrizes de contribuição.
-- **CHANGELOG.md:** histórico de alterações do projeto.
 - **.gitignore:** arquivos e pastas ignorados pelo Git.
 
 ## Objetivos técnicos
