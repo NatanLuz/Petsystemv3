@@ -1,18 +1,14 @@
-## Petsystem v3
+## PROJETO Petsystem V3
 
-## Descrição (PROJETO SENDO DESENVOLVIDO)
+## Descrição sobre o projeto
 
-O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas veterinárias, desenvolvido com uma arquitetura separada entre backend e frontend.
+O PetSystem V3 será um sistema de gerenciamento para PetShops e/ou clínicas veterinárias, desenvolvido com uma arquitetura separada entre backend e frontend. O objetivo é permitir o gerenciamento de informações como clientes, pets, serviços e agendamentos, além de autenticação e controle de acesso. Este projeto também é utilizado como projeto de estudo e portfólio, com o propósito de demonstrar conhecimentos em desenvolvimento backend, APIs REST, frontend React, banco de dados relacional, autenticação, arquitetura de software, Git e boas práticas de desenvolvimento. Sempre de maneira limpa e clara.
 
-O objetivo é permitir o gerenciamento de informações como clientes, pets, serviços e agendamentos, além de autenticação e controle de acesso.
+## Stack Do Projeto/Estrutura
 
-Este projeto também é utilizado como projeto de estudo e portfólio, com o propósito de demonstrar conhecimentos em desenvolvimento backend, APIs REST, frontend React, banco de dados relacional, autenticação, arquitetura de software, Git e boas práticas de desenvolvimento.
+## Backend
 
-## Stack Do Projeto
-
-### Backend
-
-| Tecnologia | Finalidade |
+| Tecnologia |
 |---|---|
 | PHP | Linguagem principal do backend |
 | Laravel | Framework backend |
@@ -20,10 +16,11 @@ Este projeto também é utilizado como projeto de estudo e portfólio, com o pro
 | Eloquent ORM | Mapeamento objeto-relacional |
 | Laravel Sanctum | Autenticação da API |
 
-### Frontend
+
+## Frontend
 
 | Tecnologia | Finalidade |
-|---|---|
+
 | React | Biblioteca para construção da interface |
 | JavaScript | Linguagem principal do frontend |
 | Vite | Build tool e ambiente de desenvolvimento |
@@ -33,8 +30,8 @@ Este projeto também é utilizado como projeto de estudo e portfólio, com o pro
 ## Banco de dados
 
 | Tecnologia | Finalidade |
-|---|---|
-| MySQL | Banco de dados relacional |
+
+| MySQL | Banco de dados do projeto |
 
 > O frontend é desenvolvido exclusivamente com JavaScript e JSX.
 
@@ -50,7 +47,7 @@ PetSystem V3
 │       └── Laravel Sanctum
 │
 ├── frontend/
-│   └── React + JavaScript
+│   └── React
 │       ├── Vite
 │       ├── React Router
 │       └── Axios
@@ -64,8 +61,11 @@ PetSystem V3
 **Responsabilidade de cada camada:**
 
 - **Backend (Laravel/PHP):** responsável por expor a API REST, aplicar as regras de negócio, gerenciar autenticação e realizar a comunicação com o banco de dados através do Eloquent ORM.
+
 - **Frontend (React):** responsável pela interface do usuário, consumindo os dados fornecidos pela API através de requisições HTTP feitas com Axios.
+
 - **Banco de dados (MySQL):** responsável pelo armazenamento persistente das informações do sistema.
+
 - **docs/:** reúne a documentação técnica do projeto.
 
 ## Comunicação entre as camadas
@@ -73,13 +73,13 @@ PetSystem V3
 O fluxo principal de comunicação do sistema segue o seguinte caminho:
 
 ```
-React + Vite
+React
   ↓
-Axios / REST API
+Axios
   ↓
-Laravel
+Laravel REST API
   ↓
-Eloquent
+Eloquent ORM
   ↓
 MySQL
 ```
@@ -122,8 +122,6 @@ pet-system-v3/
 ├── frontend/
 ├── docs/
 ├── README.md
-├── CONTRIBUTING.md
-├── CHANGELOG.md
 └── .gitignore
 ```
 
@@ -131,8 +129,6 @@ pet-system-v3/
 - **frontend/:** código-fonte da aplicação React.
 - **docs/:** documentação técnica do projeto.
 - **README.md:** apresentação geral do projeto.
-- **CONTRIBUTING.md:** diretrizes de contribuição.
-- **CHANGELOG.md:** histórico de alterações do projeto.
 - **.gitignore:** arquivos e pastas ignorados pelo Git.
 
 ## Objetivos técnicos
@@ -153,27 +149,6 @@ O PetSystem V3 busca aplicar, ao longo do seu desenvolvimento:
 - Versionamento com Git e GitHub
 - Testes automatizados
 - Documentação técnica
-
-## Roadmap
-
-- [ ] Definição da arquitetura
-- [ ] Configuração do Laravel
-- [ ] Configuração do MySQL
-- [ ] Estrutura inicial da API
-- [ ] Autenticação com Sanctum
-- [ ] Módulo de usuários
-- [ ] Módulo de clientes
-- [ ] Módulo de pets
-- [ ] Módulo de serviços
-- [ ] Módulo de agendamentos
-- [ ] Estrutura inicial do React
-- [ ] Rotas do frontend
-- [ ] Integração React + Laravel
-- [ ] Dashboard
-- [ ] Testes
-- [ ] Revisão de segurança
-- [ ] Documentação final
-- [ ] Deploy
 
 ## Instalação
 
