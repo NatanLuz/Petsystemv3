@@ -34,7 +34,7 @@ Este projeto também é utilizado como projeto de estudo e portfólio, com o pro
 
 | Tecnologia | Finalidade |
 |---|---|
-| PostgreSQL | Banco de dados relacional |
+| MySQL | Banco de dados relacional |
 
 > O frontend é desenvolvido exclusivamente com JavaScript e JSX.
 
@@ -58,14 +58,14 @@ PetSystem V3
 ├── docs/
 │   └── documentação
 │
-└── PostgreSQL
+└── MySQL
 ```
 
 **Responsabilidade de cada camada:**
 
 - **Backend (Laravel/PHP):** responsável por expor a API REST, aplicar as regras de negócio, gerenciar autenticação e realizar a comunicação com o banco de dados através do Eloquent ORM.
 - **Frontend (React):** responsável pela interface do usuário, consumindo os dados fornecidos pela API através de requisições HTTP feitas com Axios.
-- **Banco de dados (PostgreSQL):** responsável pelo armazenamento persistente das informações do sistema.
+- **Banco de dados (MySQL):** responsável pelo armazenamento persistente das informações do sistema.
 - **docs/:** reúne a documentação técnica do projeto.
 
 ## Comunicação entre as camadas
@@ -73,18 +73,18 @@ PetSystem V3
 O fluxo principal de comunicação do sistema segue o seguinte caminho:
 
 ```
-React
+React + Vite
   ↓
-Axios
+Axios / REST API
   ↓
-Laravel REST API
+Laravel
   ↓
-Eloquent ORM
+Eloquent
   ↓
-PostgreSQL
+MySQL
 ```
 
-O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados PostgreSQL.
+O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados MySQL.
 
 ## Funcionalidades
 
@@ -94,7 +94,7 @@ O frontend React consome os endpoints disponibilizados pela API Laravel através
 - Backend Laravel
 - Frontend React
 - Configuração da API
-- Configuração do PostgreSQL
+- Configuração do MySQL
 
 ## Planejado
 
@@ -158,7 +158,7 @@ O PetSystem V3 busca aplicar, ao longo do seu desenvolvimento:
 
 - [ ] Definição da arquitetura
 - [ ] Configuração do Laravel
-- [ ] Configuração do PostgreSQL
+- [ ] Configuração do MySQL
 - [ ] Estrutura inicial da API
 - [ ] Autenticação com Sanctum
 - [ ] Módulo de usuários
@@ -185,7 +185,7 @@ Será necessário ter instalado:
 
 - PHP
 - Composer
-- PostgreSQL
+- MySQL
 
 ## Frontend
 
