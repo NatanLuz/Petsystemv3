@@ -13,11 +13,7 @@ export default function Sidebar() {
   return (
     <aside className="app-sidebar" aria-label="Navegação principal">
       <div className="sidebar-brand">
-        <span className="sidebar-brand-mark">PS</span>
-        <div>
-          <strong>PETSYSTEM V3</strong>
-          <span>Gestão</span>
-        </div>
+        <strong>PetSystem</strong>
       </div>
 
       <nav className="sidebar-nav">
