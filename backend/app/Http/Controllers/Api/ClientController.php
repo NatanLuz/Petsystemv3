@@ -37,6 +37,12 @@ class ClientController extends Controller
 
     public function destroy(Client $client)
     {
+        if ($client->pets()->exists()) {
+            return response()->json([
+                'message' => 'Não é possível excluir um cliente que possui pets cadastrados.',
+            ], 409);
+        }
+
         $client->delete();
 
         return response()->noContent();

@@ -111,6 +111,32 @@ class ClientApiTest extends TestCase
         ]);
     }
 
+    public function test_it_does_not_delete_a_client_with_pets(): void
+    {
+        $client = $this->createClient();
+        $pet = $client->pets()->create([
+            'name' => 'Rex',
+            'species' => 'Cachorro',
+        ]);
+
+        $response = $this->deleteJson("/api/clients/{$client->id}");
+
+        $response
+            ->assertConflict()
+            ->assertJsonPath(
+                'message',
+                'Não é possível excluir um cliente que possui pets cadastrados.',
+            );
+
+        $this->assertDatabaseHas('clients', [
+            'id' => $client->id,
+        ]);
+        $this->assertDatabaseHas('pets', [
+            'id' => $pet->id,
+            'client_id' => $client->id,
+        ]);
+    }
+
     /**
      * @param  array<string, string|null>  $attributes
      */
