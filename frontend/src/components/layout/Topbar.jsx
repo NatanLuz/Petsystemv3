@@ -14,16 +14,12 @@ export default function Topbar() {
   return (
     <header className="app-topbar">
       <div>
-        <span className="topbar-kicker">PETSYSTEM V3</span>
         <h1>{title}</h1>
       </div>
 
       <div className="topbar-user" aria-label="Usuário atual">
         <span className="topbar-avatar">A</span>
-        <div>
-          <strong>Administrador</strong>
-          <span>Admin</span>
-        </div>
+        <strong>Administrador</strong>
       </div>
     </header>
   );
