@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 const pageTitles = {
   '/': 'Dashboard',
   '/clients': 'Gerenciar Clientes',
+  '/pets': 'Gerenciar Pets',
   '/health': 'Status da API',
 };
 

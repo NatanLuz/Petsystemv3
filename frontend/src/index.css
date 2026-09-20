@@ -488,6 +488,8 @@ select {
 }
 
 .client-field input,
+.client-field select,
+.client-field textarea,
 .clients-search-input {
   width: 100%;
   min-height: 44px;
@@ -501,12 +503,16 @@ select {
 }
 
 .client-field input:focus,
+.client-field select:focus,
+.client-field textarea:focus,
 .clients-search-input:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14);
 }
 
 .client-field input:disabled,
+.client-field select:disabled,
+.client-field textarea:disabled,
 .clients-action-button:disabled,
 .clients-new-button:disabled {
   cursor: not-allowed;
@@ -517,6 +523,10 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.client-field textarea {
+  resize: vertical;
 }
 
 .clients-feedback {
