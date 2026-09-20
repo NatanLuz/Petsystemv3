@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 const navigationItems = [
   { label: 'Dashboard', to: '/', enabled: true },
   { label: 'Clientes', to: '/clients', enabled: true },
-  { label: 'Pets', enabled: false },
+  { label: 'Pets', to: '/pets', enabled: true },
   { label: 'Serviços', enabled: false },
   { label: 'Atendimentos', enabled: false },
 ];
