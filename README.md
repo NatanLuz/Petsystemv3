@@ -1,4 +1,4 @@
-## PROJETO Petsystem V3
+## PetSystem V3
 
 ## Descrição sobre o projeto
 
