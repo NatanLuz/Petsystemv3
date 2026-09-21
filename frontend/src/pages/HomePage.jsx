@@ -32,7 +32,6 @@ export default function HomePage() {
     <section className="dashboard-page">
       <header className="dashboard-header">
         <div>
-          <h2>Dashboard</h2>
           <p>Visão geral da operação do PetSystem.</p>
         </div>
       </header>
