@@ -128,7 +128,6 @@ export default function PetsPage() {
     <section className="clients-page">
       <header className="clients-header">
         <div>
-          <h2>Gerenciar Pets</h2>
           <p>Cadastre e gerencie os pets e seus tutores no PetSystem.</p>
         </div>
         <button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Pet</button>

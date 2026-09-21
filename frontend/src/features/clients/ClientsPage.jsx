@@ -192,7 +192,6 @@ export default function ClientsPage() {
     <section className="clients-page">
       <header className="clients-header">
         <div>
-          <h2>Gerenciar Clientes</h2>
           <p>Cadastre e gerencie os clientes do PetSystem.</p>
         </div>
 
