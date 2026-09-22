@@ -184,7 +184,7 @@ O projeto será desenvolvido de maneira incremental, seguindo as seguintes etapa
 9. Documentação
 10. Deploy
 
-## Versionamento (Git)
+## Versionamento Ordem de commits (Git)
 
 O projeto utiliza Git e GitHub para controle de versão, seguindo o padrão de commits semânticos, por exemplo:
 
