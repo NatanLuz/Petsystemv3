@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\PetController;
+use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,7 @@ Route::get('/health/ready', [HealthCheckController::class, 'ready']);
 
 Route::apiResource('clients', ClientController::class);
 Route::apiResource('pets', PetController::class);
+Route::apiResource('services', ServiceController::class);
 
 // Rota de exemplo para usuário autenticado via Sanctum
 Route::get('/user', function (Request $request) {
