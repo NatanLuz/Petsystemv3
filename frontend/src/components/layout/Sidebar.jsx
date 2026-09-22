@@ -5,7 +5,7 @@ const navigationItems = [
   { label: 'Dashboard', to: '/', enabled: true },
   { label: 'Clientes', to: '/clients', enabled: true },
   { label: 'Pets', to: '/pets', enabled: true },
-  { label: 'Serviços', enabled: false },
+  { label: 'Serviços', to: '/services', enabled: true },
   { label: 'Atendimentos', enabled: false },
 ];
 

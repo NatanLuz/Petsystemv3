@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import ClientsPage from '../features/clients/ClientsPage';
 import PetsPage from '../features/pets/PetsPage';
+import ServicesPage from '../features/services/ServicesPage';
 import MainLayout from '../layouts/MainLayout';
 import HomePage from '../pages/HomePage';
 import HealthPage from '../pages/HealthPage';
@@ -15,6 +16,7 @@ export default function AppRoutes() {
         <Route path="/health" element={<HealthPage />} />
         <Route path="/clients" element={<ClientsPage />} />
         <Route path="/pets" element={<PetsPage />} />
+        <Route path="/services" element={<ServicesPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </MainLayout>
