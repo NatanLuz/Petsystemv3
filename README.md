@@ -58,7 +58,7 @@ PetSystem V3
 └── MySQL
 ```
 
-**Responsabilidade de cada camada:**
+**Responsabilidade e Funcionalidades de cada camada:**
 
 - **Backend (Laravel/PHP):** responsável por expor a API REST, aplicar as regras de negócio, gerenciar autenticação e realizar a comunicação com o banco de dados através do Eloquent ORM.
 
