@@ -41,6 +41,12 @@ class PetController extends Controller
 
     public function destroy(Pet $pet)
     {
+        if ($pet->appointments()->exists()) {
+            return response()->json([
+                'message' => 'Não é possível excluir um pet que possui agendamentos cadastrados.',
+            ], 409);
+        }
+
         $pet->delete();
 
         return response()->noContent();

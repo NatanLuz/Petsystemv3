@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\PetController;
 use App\Http\Controllers\Api\ServiceController;
@@ -25,6 +26,7 @@ Route::get('/health/ready', [HealthCheckController::class, 'ready']);
 Route::apiResource('clients', ClientController::class);
 Route::apiResource('pets', PetController::class);
 Route::apiResource('services', ServiceController::class);
+Route::apiResource('appointments', AppointmentController::class);
 
 // Rota de exemplo para usuário autenticado via Sanctum
 Route::get('/user', function (Request $request) {

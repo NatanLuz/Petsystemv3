@@ -35,6 +35,12 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
+        if ($service->appointments()->exists()) {
+            return response()->json([
+                'message' => 'Não é possível excluir um serviço que possui agendamentos cadastrados.',
+            ], 409);
+        }
+
         $service->delete();
 
         return response()->noContent();
