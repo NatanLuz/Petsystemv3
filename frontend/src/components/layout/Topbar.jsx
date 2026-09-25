@@ -6,6 +6,7 @@ const pageTitles = {
   '/clients': 'Clientes',
   '/pets': 'Pets',
   '/services': 'Serviços',
+  '/appointments': 'Agendamentos',
   '/health': 'Status da API',
 };
 
