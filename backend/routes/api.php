@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\PetController;
 use App\Http\Controllers\Api\ServiceController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,8 +26,3 @@ Route::apiResource('clients', ClientController::class);
 Route::apiResource('pets', PetController::class);
 Route::apiResource('services', ServiceController::class);
 Route::apiResource('appointments', AppointmentController::class);
-
-// Rota de exemplo para usuário autenticado via Sanctum
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
