@@ -19,6 +19,18 @@
   --transition: all 0.2s ease;
 }
 
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1rem;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 440px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

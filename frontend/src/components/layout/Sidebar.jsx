@@ -1,5 +1,6 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from '../../features/auth/AuthContext';
 
 const navigationItems = [
   { label: "Dashboard", to: "/", enabled: true },
@@ -11,6 +12,12 @@ const navigationItems = [
 ];
 
 export default function Sidebar() {
+  const { user, status, operation, error, logout, refreshUser } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    if (await logout()) navigate('/login', { replace: true });
+  }
   return (
     <aside className="app-sidebar" aria-label="Navegação principal">
       <div className="sidebar-brand">
@@ -43,12 +50,18 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <span
-          className="sidebar-link sidebar-link-disabled"
-          aria-disabled="true"
-        >
-          Sair
-        </span>
+        {error && <p className="clients-feedback clients-feedback-error" role="alert">{error}</p>}
+        {user ? (
+          <button className="btn btn-secondary" onClick={handleLogout} disabled={Boolean(operation)}>
+            {operation === 'logout' ? 'Saindo...' : 'Sair'}
+          </button>
+        ) : status === 'checking' || operation === 'checking' ? (
+          <span className="sidebar-link" role="status">Verificando sessão...</span>
+        ) : status === 'error' ? (
+          <button className="btn btn-secondary" onClick={refreshUser}>Verificar sessão</button>
+        ) : (
+          <NavLink className="sidebar-link" to="/login">Entrar</NavLink>
+        )}
       </div>
     </aside>
   );
