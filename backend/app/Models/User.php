@@ -10,6 +10,16 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_RECEPTIONIST = 'receptionist';
+    public const ROLE_VETERINARIAN = 'veterinarian';
+
+    public const ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_RECEPTIONIST,
+        self::ROLE_VETERINARIAN,
+    ];
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -44,6 +54,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
         ];
     }
 }
