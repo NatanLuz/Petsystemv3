@@ -21,7 +21,6 @@ class AuthApiTest extends TestCase
     protected function continueSession(TestResponse $response): void
     {
         $this->withCookie(config('session.cookie'), $response->getCookie(config('session.cookie'))->getValue());
-        // Force the next request to resolve identity from the session, not a cached guard.
         Auth::forgetGuards();
     }
 
