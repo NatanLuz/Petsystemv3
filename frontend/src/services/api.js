@@ -8,25 +8,8 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true,
+  withXSRFToken: true,
 });
-
-// Interceptor de requisições (útil para futuramente injetar tokens do Sanctum)
-api.interceptors.request.use(
-  (config) => {
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor de respostas para tratamento centralizado de erros
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Request Error:', error.response || error.message);
-    return Promise.reject(error);
-  }
-);
 
 export default api;

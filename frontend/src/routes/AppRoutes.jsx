@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
+import LoginPage from '../features/auth/LoginPage';
 import ClientsPage from '../features/clients/ClientsPage';
 import PetsPage from '../features/pets/PetsPage';
 import ServicesPage from '../features/services/ServicesPage';
@@ -11,8 +12,9 @@ import NotFoundPage from '../pages/NotFoundPage';
 
 export default function AppRoutes() {
   return (
-    <MainLayout>
-      <Routes>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<MainLayout><Outlet /></MainLayout>}>
         <Route path="/" element={<HomePage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/clients" element={<ClientsPage />} />
@@ -20,7 +22,7 @@ export default function AppRoutes() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
         <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </MainLayout>
+      </Route>
+    </Routes>
   );
 }
