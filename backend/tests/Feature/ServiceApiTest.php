@@ -3,12 +3,19 @@
 namespace Tests\Feature;
 
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ServiceApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->active()->create(), 'web');
+    }
 
     public function test_it_creates_and_persists_a_valid_service(): void
     {

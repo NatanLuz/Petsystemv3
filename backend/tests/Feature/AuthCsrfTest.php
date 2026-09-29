@@ -15,6 +15,8 @@ class AuthCsrfTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['sanctum.stateful' => ['127.0.0.1:5173']]);
+        $this->withHeader('Origin', 'http://127.0.0.1:5173');
         // Enable the real token validation path; only remove Laravel's test bypass.
         $this->app->bind(ValidateCsrfToken::class, fn ($app) => new class($app, $app['encrypter']) extends ValidateCsrfToken
         {
@@ -51,10 +53,47 @@ class AuthCsrfTest extends TestCase
         $this->getJson('/api/user')->assertUnauthorized();
     }
 
-    public function test_existing_crud_still_accepts_writes_without_session_or_csrf(): void
+    public function test_stateful_resource_writes_require_csrf_and_authentication(): void
     {
-        $this->withHeader('Origin', 'http://localhost:5173')
-            ->postJson('/api/clients', ['name' => 'Teste', 'phone' => '11999999999'])
-            ->assertCreated();
+        $csrf = $this->getJson('/sanctum/csrf-cookie')->assertNoContent();
+        $this->withCookie(config('session.cookie'), $csrf->getCookie(config('session.cookie'))->getValue());
+        foreach (['clients', 'pets', 'services', 'appointments'] as $resource) {
+            foreach (['POST', 'PATCH', 'PUT', 'DELETE'] as $method) {
+                $path = '/api/'.$resource.($method === 'POST' ? '' : '/1');
+                $payload = ['name' => 'Denied', 'phone' => '11999999999'];
+                $this->json($method, $path, $payload)->assertStatus(419);
+                $this->json($method, $path, $payload, ['X-XSRF-TOKEN' => 'invalid'])->assertStatus(419);
+                $this->json($method, $path, $payload, [
+                    'X-XSRF-TOKEN' => $csrf->getCookie('XSRF-TOKEN', false)->getValue(),
+                ])->assertUnauthorized();
+            }
+            $this->assertDatabaseCount($resource, 0);
+        }
+    }
+
+    public function test_authenticated_stateful_writes_require_csrf_without_changing_data_on_rejection(): void
+    {
+        $user = User::factory()->active()->create();
+        $csrf = $this->getJson('/sanctum/csrf-cookie')->assertNoContent();
+        $this->withCookie(config('session.cookie'), $csrf->getCookie(config('session.cookie'))->getValue());
+        $login = $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'], [
+            'X-XSRF-TOKEN' => $csrf->getCookie('XSRF-TOKEN', false)->getValue(),
+        ])->assertOk();
+        $this->withCookie(config('session.cookie'), $login->getCookie(config('session.cookie'))->getValue());
+        Auth::forgetGuards();
+        $headers = ['X-XSRF-TOKEN' => $login->getCookie('XSRF-TOKEN', false)->getValue()];
+        $payload = ['name' => 'Teste', 'phone' => '11999999999'];
+        $this->postJson('/api/clients', $payload)->assertStatus(419);
+        $this->assertDatabaseCount('clients', 0);
+        $created = $this->postJson('/api/clients', $payload, $headers)->assertCreated();
+        $path = '/api/clients/'.$created->json('id');
+        foreach (['PATCH', 'PUT', 'DELETE'] as $method) {
+            $this->json($method, $path, ['name' => 'Denied'])->assertStatus(419);
+            $this->assertDatabaseHas('clients', ['id' => $created->json('id'), 'name' => 'Teste']);
+        }
+        $this->patchJson($path, ['name' => 'Atualizado'], $headers)->assertOk();
+        $this->putJson($path, ['name' => 'Atualizado novamente'], $headers)->assertOk();
+        $this->deleteJson($path, [], $headers)->assertNoContent();
+        $this->assertDatabaseCount('clients', 0);
     }
 }
