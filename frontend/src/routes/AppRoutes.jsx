@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
 import LoginPage from '../features/auth/LoginPage';
+import ProtectedRoute from './ProtectedRoute';
 import ClientsPage from '../features/clients/ClientsPage';
 import PetsPage from '../features/pets/PetsPage';
 import ServicesPage from '../features/services/ServicesPage';
@@ -14,7 +15,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route element={<MainLayout><Outlet /></MainLayout>}>
+      <Route element={<ProtectedRoute><MainLayout><Outlet /></MainLayout></ProtectedRoute>}>
         <Route path="/" element={<HomePage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/clients" element={<ClientsPage />} />

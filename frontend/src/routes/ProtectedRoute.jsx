@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 
-// Prepared for Stage C; intentionally not applied to current routes.
+// Resolve the session before mounting the internal layout and its pages.
 export default function ProtectedRoute({ children }) {
   const { user, status, operation, error, refreshUser } = useAuth();
   if (status === 'checking' || operation === 'checking') {

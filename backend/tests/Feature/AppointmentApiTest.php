@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Appointment;
+use App\Models\User;
 use App\Models\Client;
 use App\Models\Pet;
 use App\Models\Service;
@@ -12,6 +13,12 @@ use Tests\TestCase;
 class AppointmentApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->active()->create(), 'web');
+    }
 
     public function test_it_lists_appointments_with_pet_client_and_service(): void
     {
