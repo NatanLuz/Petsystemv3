@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Testing\TestResponse;
@@ -69,12 +70,19 @@ class ProtectedApiTest extends TestCase
     }
 
     #[DataProvider('roles')]
-    public function test_every_active_role_has_the_same_full_resource_access(string $role): void
+    public function test_each_role_can_operate_resources_according_to_the_approved_matrix(string $role): void
     {
         $this->login(User::factory()->active()->create(['role' => $role]));
         $client = $this->postJson('/api/clients', ['name' => 'Cliente', 'phone' => '11999999999'])->assertCreated()->json();
         $pet = $this->postJson('/api/pets', ['name' => 'Rex', 'species' => 'Cachorro', 'client_id' => $client['id']])->assertCreated()->json();
-        $service = $this->postJson('/api/services', ['name' => 'Banho', 'price' => '50.00', 'duration_minutes' => 30])->assertCreated()->json();
+        $servicePayload = ['name' => 'Banho', 'price' => '50.00', 'duration_minutes' => 30];
+        if ($role === User::ROLE_ADMIN) {
+            $service = $this->postJson('/api/services', $servicePayload)->assertCreated()->json();
+        } else {
+            $this->postJson('/api/services', $servicePayload)->assertForbidden();
+            $this->assertDatabaseCount('services', 0);
+            $service = Service::create($servicePayload + ['active' => true])->toArray();
+        }
         $appointment = $this->postJson('/api/appointments', [
             'pet_id' => $pet['id'], 'service_id' => $service['id'], 'scheduled_at' => '2026-10-01 14:00:00',
         ])->assertCreated()->json();
@@ -86,12 +94,32 @@ class ProtectedApiTest extends TestCase
             $path = '/api/'.$resource.'/'.$record['id'];
             $this->getJson($path)->assertOk()->assertJsonPath('id', $record['id']);
             $payload = $resource === 'appointments' ? ['status' => 'confirmed'] : ['name' => 'Atualizado'];
-            $this->patchJson($path, $payload)->assertOk()->assertJsonFragment($payload);
-            $this->putJson($path, $payload)->assertOk()->assertJsonFragment($payload);
+            if ($resource === 'services' && $role !== User::ROLE_ADMIN) {
+                $this->patchJson($path, $payload)->assertForbidden();
+                $this->putJson($path, $payload)->assertForbidden();
+                $this->assertDatabaseHas('services', ['id' => $record['id'], 'name' => 'Banho']);
+            } else {
+                $this->patchJson($path, $payload)->assertOk()->assertJsonFragment($payload);
+                $this->putJson($path, $payload)->assertOk()->assertJsonFragment($payload);
+            }
         }
         foreach (['appointments', 'pets', 'services', 'clients'] as $resource) {
-            $this->deleteJson('/api/'.$resource.'/'.$records[$resource]['id'])->assertNoContent();
-            $this->assertDatabaseCount($resource, 0);
+            $allowed = $role === User::ROLE_ADMIN
+                || ($role === User::ROLE_RECEPTIONIST && in_array($resource, ['clients', 'pets'], true));
+            $response = $this->deleteJson('/api/'.$resource.'/'.$records[$resource]['id']);
+            if ($allowed) {
+                // Reception may delete cadastres, but their existing relations still block deletion.
+                if ($role === User::ROLE_RECEPTIONIST) {
+                    $response->assertConflict();
+                    $this->assertDatabaseCount($resource, 1);
+                } else {
+                    $response->assertNoContent();
+                    $this->assertDatabaseCount($resource, 0);
+                }
+            } else {
+                $response->assertForbidden();
+                $this->assertDatabaseCount($resource, 1);
+            }
         }
     }
 

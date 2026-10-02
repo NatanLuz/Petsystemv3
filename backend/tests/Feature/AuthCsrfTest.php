@@ -53,6 +53,28 @@ class AuthCsrfTest extends TestCase
         $this->getJson('/api/user')->assertUnauthorized();
     }
 
+    public function test_csrf_failure_precedes_authorization_and_forbidden_response_preserves_session(): void
+    {
+        $user = User::factory()->active()->receptionist()->create();
+        $csrf = $this->getJson('/sanctum/csrf-cookie')->assertNoContent();
+        $this->withCookie(config('session.cookie'), $csrf->getCookie(config('session.cookie'))->getValue());
+        $login = $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'], [
+            'X-XSRF-TOKEN' => $csrf->getCookie('XSRF-TOKEN', false)->getValue(),
+        ])->assertOk();
+        $this->withCookie(config('session.cookie'), $login->getCookie(config('session.cookie'))->getValue());
+        Auth::forgetGuards();
+        $payload = ['name' => 'Denied', 'price' => '50.00', 'duration_minutes' => 30, 'role' => 'admin'];
+        $this->postJson('/api/services', $payload)->assertStatus(419);
+        $this->postJson('/api/services', $payload, ['X-XSRF-TOKEN' => 'invalid'])->assertStatus(419);
+        $denied = $this->postJson('/api/services', $payload, [
+            'X-XSRF-TOKEN' => $login->getCookie('XSRF-TOKEN', false)->getValue(),
+        ])->assertForbidden();
+        $this->assertDatabaseCount('services', 0);
+        $this->withCookie(config('session.cookie'), $denied->getCookie(config('session.cookie'))->getValue());
+        Auth::forgetGuards();
+        $this->getJson('/api/user')->assertOk()->assertJsonPath('id', $user->id)->assertJsonPath('role', 'receptionist');
+    }
+
     public function test_stateful_resource_writes_require_csrf_and_authentication(): void
     {
         $csrf = $this->getJson('/sanctum/csrf-cookie')->assertNoContent();

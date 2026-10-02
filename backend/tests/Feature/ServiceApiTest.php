@@ -14,7 +14,7 @@ class ServiceApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->actingAs(User::factory()->active()->create(), 'web');
+        $this->actingAs(User::factory()->active()->admin()->create(), 'web');
     }
 
     public function test_it_creates_and_persists_a_valid_service(): void
