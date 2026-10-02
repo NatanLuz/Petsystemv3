@@ -24,8 +24,16 @@ Route::get('/health/live', [HealthCheckController::class, 'live']);
 Route::get('/health/ready', [HealthCheckController::class, 'ready']);
 
 Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function () {
-    Route::apiResource('clients', ClientController::class);
-    Route::apiResource('pets', PetController::class);
-    Route::apiResource('services', ServiceController::class);
-    Route::apiResource('appointments', AppointmentController::class);
+    foreach ([
+        'clients' => ClientController::class,
+        'pets' => PetController::class,
+        'services' => ServiceController::class,
+        'appointments' => AppointmentController::class,
+    ] as $resource => $controller) {
+        Route::apiResource($resource, $controller)
+            ->middlewareFor(['index', 'show'], 'can:'.$resource.'.view')
+            ->middlewareFor('store', 'can:'.$resource.'.create')
+            ->middlewareFor('update', 'can:'.$resource.'.update')
+            ->middlewareFor('destroy', 'can:'.$resource.'.delete');
+    }
 });
