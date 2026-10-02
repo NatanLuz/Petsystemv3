@@ -160,7 +160,7 @@ Será necessário ter instalado:
 
 ## Frontend
 
-Será necessário ter instalado:
+Necessário ter instalado:
 
 - Node.js
 - npm
