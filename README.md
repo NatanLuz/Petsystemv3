@@ -84,7 +84,6 @@ MySQL
 O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados MySQL.
 
 ## Funcionalidades
-
 ## Em desenvolvimento
 
 - Estrutura inicial do projeto
