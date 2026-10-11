@@ -24,11 +24,13 @@ export default function ServiceForm({
   onSubmit,
   onCancel,
   submitting = false,
+  hasPermission = true,
   initialData = null,
 }) {
   const [formData, setFormData] = useState(() => getInitialFormData(initialData));
   const [validationError, setValidationError] = useState(null);
   const isEditing = initialData !== null;
+  const fieldsDisabled = submitting || !hasPermission;
 
   useEffect(() => {
     setFormData(getInitialFormData(initialData));
@@ -36,6 +38,7 @@ export default function ServiceForm({
   }, [initialData]);
 
   function handleChange(event) {
+    if (fieldsDisabled) return;
     const { name, value } = event.target;
 
     setFormData((currentData) => ({
@@ -48,7 +51,7 @@ export default function ServiceForm({
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (submitting) {
+    if (fieldsDisabled) {
       return;
     }
 
@@ -88,6 +91,13 @@ export default function ServiceForm({
         <p>Preencha os dados principais para salvar o serviço.</p>
       </div>
 
+      {!hasPermission && (
+        <p className="clients-feedback clients-feedback-error" role="alert">
+          Acesso negado: você não tem mais permissão para salvar este serviço.
+          Os dados preenchidos foram preservados. Você pode fechar o formulário em Cancelar.
+        </p>
+      )}
+
       {validationError && (
         <p className="clients-state-error" role="alert">
           {validationError}
@@ -104,7 +114,7 @@ export default function ServiceForm({
             onChange={handleChange}
             maxLength={255}
             required
-            disabled={submitting}
+            disabled={fieldsDisabled}
           />
         </label>
 
@@ -119,7 +129,7 @@ export default function ServiceForm({
             max="99999999.99"
             step="0.01"
             required
-            disabled={submitting}
+            disabled={fieldsDisabled}
           />
         </label>
 
@@ -134,7 +144,7 @@ export default function ServiceForm({
             max="2147483647"
             step="1"
             required
-            disabled={submitting}
+            disabled={fieldsDisabled}
           />
         </label>
 
@@ -144,7 +154,7 @@ export default function ServiceForm({
             name="active"
             value={String(formData.active)}
             onChange={handleChange}
-            disabled={submitting}
+            disabled={fieldsDisabled}
           >
             <option value="true">Ativo</option>
             <option value="false">Inativo</option>
@@ -158,13 +168,13 @@ export default function ServiceForm({
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            disabled={submitting}
+            disabled={fieldsDisabled}
           />
         </label>
       </div>
 
       <div className="client-form-actions">
-        <button type="submit" className="btn btn-primary" disabled={submitting}>
+        <button type="submit" className="btn btn-primary" disabled={fieldsDisabled}>
           {submitting
             ? "Salvando..."
             : isEditing

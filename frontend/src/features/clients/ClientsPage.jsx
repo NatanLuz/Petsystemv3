@@ -1,3 +1,5 @@
+import { useAuth } from "../auth/AuthContext";
+import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useState } from "react";
 import ClientForm from "./ClientForm";
 import {
@@ -8,6 +10,10 @@ import {
 } from "./clientService";
 
 export default function ClientsPage() {
+  const { user } = useAuth();
+  const canCreate = can(user, "clients.create");
+  const canUpdate = can(user, "clients.update");
+  const canDelete = can(user, "clients.delete");
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,6 +48,7 @@ export default function ClientsPage() {
   }
 
   async function handleSubmitClient(formData) {
+    if (!(editingClient ? canUpdate : canCreate)) return;
     if (submitting) {
       return;
     }
@@ -73,7 +80,9 @@ export default function ClientsPage() {
       setIsFormOpen(false);
       setSuccessMessage("Cliente cadastrado com sucesso.");
     } catch (requestError) {
-      if (requestError.response?.status === 422) {
+      if (requestError.response?.status === 403) {
+        setSubmitError(null);
+      } else if (requestError.response?.status === 422) {
         setSubmitError("Verifique os dados informados e tente novamente.");
       } else {
         setSubmitError(
@@ -88,6 +97,7 @@ export default function ClientsPage() {
   }
 
   function handleNewClient() {
+    if (!canCreate) return;
     if (submitting) {
       return;
     }
@@ -99,6 +109,7 @@ export default function ClientsPage() {
   }
 
   function handleEditClient(client) {
+    if (!canUpdate) return;
     if (submitting) {
       return;
     }
@@ -119,6 +130,7 @@ export default function ClientsPage() {
   }
 
   async function handleDeleteClient(client) {
+    if (!canDelete) return;
     if (submitting || deletingClientId !== null) {
       return;
     }
@@ -149,7 +161,8 @@ export default function ClientsPage() {
       }
 
       setSuccessMessage("Cliente excluído com sucesso.");
-    } catch {
+    } catch (requestError) {
+      if (requestError.response?.status === 403) return;
       setDeleteError(
         "Não foi possível excluir o cliente. Tente novamente mais tarde.",
       );
@@ -195,14 +208,14 @@ export default function ClientsPage() {
           <p>Cadastre e gerencie os clientes do PetSystem.</p>
         </div>
 
-        <button
+        {canCreate && (<button
           type="button"
           className="btn btn-primary clients-new-button"
           onClick={handleNewClient}
           disabled={submitting}
         >
           + Novo Cliente
-        </button>
+        </button>)}
       </header>
 
       {successMessage && (
@@ -211,7 +224,7 @@ export default function ClientsPage() {
         </div>
       )}
 
-      {isFormOpen && (
+      {isFormOpen && (editingClient ? canUpdate : canCreate) && (
         <ClientForm
           key={editingClient ? `edit-${editingClient.id}` : `create-${formKey}`}
           initialData={editingClient}
@@ -290,15 +303,15 @@ export default function ClientsPage() {
                     <td>{client.address || "Não informado"}</td>
                     <td>
                       <div className="clients-table-actions">
-                        <button
+                        {canUpdate && (<button
                           type="button"
                           className="clients-action-button clients-action-edit"
                           onClick={() => handleEditClient(client)}
                           disabled={submitting || deletingClientId !== null}
                         >
                           Editar
-                        </button>
-                        <button
+                        </button>)}
+                        {canDelete && (<button
                           type="button"
                           className="clients-action-button clients-action-delete"
                           onClick={() => handleDeleteClient(client)}
@@ -307,7 +320,7 @@ export default function ClientsPage() {
                           {deletingClientId === client.id
                             ? "Excluindo..."
                             : "Excluir"}
-                        </button>
+                        </button>)}
                       </div>
                     </td>
                   </tr>

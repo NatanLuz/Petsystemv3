@@ -1,3 +1,5 @@
+import { useAuth } from "../auth/AuthContext";
+import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PetForm from "./PetForm";
 import { createPet, deletePet, listPets, updatePet } from "./petService";
@@ -8,6 +10,10 @@ const fieldLabels = {
 };
 
 export default function PetsPage() {
+  const { user } = useAuth();
+  const canCreate = can(user, "pets.create");
+  const canUpdate = can(user, "pets.update");
+  const canDelete = can(user, "pets.delete");
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,6 +60,7 @@ export default function PetsPage() {
   }
 
   function openForm(pet = null) {
+    if (!(pet ? canUpdate : canCreate)) return;
     if (operationPending.current) return;
     clearOperationMessages();
     setEditingPet(pet);
@@ -69,6 +76,7 @@ export default function PetsPage() {
   }
 
   async function handleSubmitPet(data) {
+    if (!(editingPet ? canUpdate : canCreate)) return;
     if (operationPending.current) return;
     operationPending.current = true;
     setSubmitting(true);
@@ -84,7 +92,9 @@ export default function PetsPage() {
       setEditingPet(null);
       setIsFormOpen(false);
     } catch (requestError) {
-      if (requestError.response?.status === 422) {
+      if (requestError.response?.status === 403) {
+        setSubmitError(null);
+      } else if (requestError.response?.status === 422) {
         // Use only known field names; never render arbitrary server diagnostics.
         const errors = requestError.response.data?.errors;
         const fields = Object.keys(fieldLabels).filter((field) => errors?.[field]).map((field) => fieldLabels[field]);
@@ -103,6 +113,7 @@ export default function PetsPage() {
   }
 
   async function handleDeletePet(pet) {
+    if (!canDelete) return;
     if (operationPending.current) return;
     if (!window.confirm(`Deseja realmente excluir o pet ${pet.name}?`)) return;
     operationPending.current = true;
@@ -116,7 +127,8 @@ export default function PetsPage() {
         setIsFormOpen(false);
       }
       setSuccessMessage("Pet excluído com sucesso.");
-    } catch {
+    } catch (requestError) {
+      if (requestError.response?.status === 403) return;
       setDeleteError("Não foi possível excluir o pet. Tente novamente mais tarde.");
     } finally {
       operationPending.current = false;
@@ -130,10 +142,10 @@ export default function PetsPage() {
         <div>
           <p>Cadastre e gerencie os pets e seus tutores no PetSystem.</p>
         </div>
-        <button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Pet</button>
+        {canCreate && (<button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Pet</button>)}
       </header>
       {successMessage && <div className="clients-feedback clients-feedback-success" role="status">{successMessage}</div>}
-      {isFormOpen && (
+      {isFormOpen && (editingPet ? canUpdate : canCreate) && (
         <PetForm key={formKey} initialData={editingPet} onSubmit={handleSubmitPet}
           onCancel={handleCancelForm} submitting={submitting} disabled={deletingPetId !== null} />
       )}
@@ -166,10 +178,10 @@ export default function PetsPage() {
                     <td>{pet.client?.name || "Tutor indisponível"}</td>
                     <td>
                       <div className="clients-table-actions">
-                        <button type="button" className="clients-action-button clients-action-edit" onClick={() => openForm(pet)} disabled={busy}>Editar</button>
-                        <button type="button" className="clients-action-button clients-action-delete" onClick={() => handleDeletePet(pet)} disabled={busy}>
+                        {canUpdate && (<button type="button" className="clients-action-button clients-action-edit" onClick={() => openForm(pet)} disabled={busy}>Editar</button>)}
+                        {canDelete && (<button type="button" className="clients-action-button clients-action-delete" onClick={() => handleDeletePet(pet)} disabled={busy}>
                           {deletingPetId === pet.id ? "Excluindo..." : "Excluir"}
-                        </button>
+                        </button>)}
                       </div>
                     </td>
                   </tr>

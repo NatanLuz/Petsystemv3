@@ -1,3 +1,5 @@
+import { useAuth } from "../auth/AuthContext";
+import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ServiceForm from "./ServiceForm";
 import {
@@ -29,6 +31,10 @@ function formatPrice(price) {
 }
 
 export default function ServicesPage() {
+  const { user } = useAuth();
+  const canCreate = can(user, "services.create");
+  const canUpdate = can(user, "services.update");
+  const canDelete = can(user, "services.delete");
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -95,6 +101,7 @@ export default function ServicesPage() {
   }
 
   function openForm(service = null) {
+    if (!(service ? canUpdate : canCreate)) return;
     if (operationPending.current) {
       return;
     }
@@ -116,6 +123,7 @@ export default function ServicesPage() {
   }
 
   async function handleSubmitService(data) {
+    if (!(editingService ? canUpdate : canCreate)) return;
     if (operationPending.current) {
       return;
     }
@@ -144,7 +152,9 @@ export default function ServicesPage() {
       setEditingService(null);
       setIsFormOpen(false);
     } catch (requestError) {
-      if (requestError.response?.status === 422) {
+      if (requestError.response?.status === 403) {
+        setSubmitError(null);
+      } else if (requestError.response?.status === 422) {
         const errors = requestError.response.data?.errors;
         const fields = Object.keys(fieldLabels)
           .filter((field) => errors?.[field])
@@ -169,6 +179,7 @@ export default function ServicesPage() {
   }
 
   async function handleDeleteService(service) {
+    if (!canDelete) return;
     if (operationPending.current) {
       return;
     }
@@ -193,7 +204,8 @@ export default function ServicesPage() {
       }
 
       setSuccessMessage("Serviço excluído com sucesso.");
-    } catch {
+    } catch (requestError) {
+      if (requestError.response?.status === 403) return;
       setDeleteError(
         "Não foi possível excluir o serviço. Tente novamente mais tarde.",
       );
@@ -210,14 +222,14 @@ export default function ServicesPage() {
           <p>Cadastre e gerencie os serviços oferecidos pelo PetSystem.</p>
         </div>
 
-        <button
+        {canCreate && (<button
           type="button"
           className="btn btn-primary clients-new-button"
           onClick={() => openForm()}
           disabled={busy || loading || !!error}
         >
           + Novo Serviço
-        </button>
+        </button>)}
       </header>
 
       {successMessage && (
@@ -233,6 +245,7 @@ export default function ServicesPage() {
           onSubmit={handleSubmitService}
           onCancel={handleCancelForm}
           submitting={submitting}
+          hasPermission={editingService ? canUpdate : canCreate}
         />
       )}
 
@@ -297,7 +310,7 @@ export default function ServicesPage() {
                   <th>Preço</th>
                   <th>Duração</th>
                   <th>Status</th>
-                  <th>Ações</th>
+                  {(canUpdate || canDelete) && (<th>Ações</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -317,17 +330,17 @@ export default function ServicesPage() {
                         {service.active ? "Ativo" : "Inativo"}
                       </span>
                     </td>
-                    <td>
+                    {(canUpdate || canDelete) && (<td>
                       <div className="clients-table-actions">
-                        <button
+                        {canUpdate && (<button
                           type="button"
                           className="clients-action-button clients-action-edit"
                           onClick={() => openForm(service)}
                           disabled={busy}
                         >
                           Editar
-                        </button>
-                        <button
+                        </button>)}
+                        {canDelete && (<button
                           type="button"
                           className="clients-action-button clients-action-delete"
                           onClick={() => handleDeleteService(service)}
@@ -336,9 +349,9 @@ export default function ServicesPage() {
                           {deletingServiceId === service.id
                             ? "Excluindo..."
                             : "Excluir"}
-                        </button>
+                        </button>)}
                       </div>
-                    </td>
+                    </td>)}
                   </tr>
                 ))}
               </tbody>
