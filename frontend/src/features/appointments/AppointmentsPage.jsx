@@ -1,3 +1,5 @@
+import { useAuth } from "../auth/AuthContext";
+import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import AppointmentForm, { appointmentStatuses, formatAppointmentDate, formatAppointmentPrice, toOperationalInput } from "./AppointmentForm";
 import { createAppointment, deleteAppointment, listAppointments, updateAppointment } from "./appointmentService";
@@ -19,6 +21,10 @@ function validationMessage(error) {
 }
 
 export default function AppointmentsPage() {
+  const { user } = useAuth();
+  const canCreate = can(user, "appointments.create");
+  const canUpdate = can(user, "appointments.update");
+  const canDelete = can(user, "appointments.delete");
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,6 +67,7 @@ export default function AppointmentsPage() {
   }
 
   function openForm(appointment = null) {
+    if (!(appointment ? canUpdate : canCreate)) return;
     if (operationPending.current) return;
     clearMessages();
     setEditingAppointment(appointment);
@@ -76,6 +83,7 @@ export default function AppointmentsPage() {
   }
 
   async function handleSubmit(data) {
+    if (!(editingAppointment ? canUpdate : canCreate)) return;
     if (operationPending.current) return;
     operationPending.current = true;
     setSubmitting(true);
@@ -91,7 +99,9 @@ export default function AppointmentsPage() {
       setEditingAppointment(null);
       setIsFormOpen(false);
     } catch (requestError) {
-      if (requestError.response?.status === 422) {
+      if (requestError.response?.status === 403) {
+        setSubmitError(null);
+      } else if (requestError.response?.status === 422) {
         setSubmitError(validationMessage(requestError));
         setOptionsRevision((value) => value + 1);
       } else if (requestError.response?.status === 404) {
@@ -106,6 +116,7 @@ export default function AppointmentsPage() {
   }
 
   async function handleDelete(appointment) {
+    if (!canDelete) return;
     if (operationPending.current) return;
     if (!window.confirm(`Excluir definitivamente o agendamento de ${appointment.pet?.name || "pet indisponível"} em ${formatAppointmentDate(appointment.scheduled_at)}? Esta ação não pode ser desfeita. Para apenas cancelar, edite o status para Cancelado.`)) return;
     operationPending.current = true;
@@ -120,6 +131,7 @@ export default function AppointmentsPage() {
       }
       setSuccessMessage("Agendamento excluído com sucesso.");
     } catch (requestError) {
+      if (requestError.response?.status === 403) return;
       setDeleteError(requestError.response?.status === 404
         ? "O agendamento não foi encontrado. Atualize a página para conferir a lista."
         : "Não foi possível excluir o agendamento. Tente novamente mais tarde.");
@@ -133,10 +145,10 @@ export default function AppointmentsPage() {
     <section className="clients-page">
       <header className="clients-header">
         <div><p>Cadastre e gerencie os agendamentos do PetSystem.</p></div>
-        <button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Agendamento</button>
+        {canCreate && (<button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Agendamento</button>)}
       </header>
       {successMessage && <div className="clients-feedback clients-feedback-success" role="status">{successMessage}</div>}
-      {isFormOpen && <AppointmentForm key={formKey} initialData={editingAppointment} onSubmit={handleSubmit} onCancel={closeForm} submitting={submitting} disabled={deletingId !== null} optionsRevision={optionsRevision} />}
+      {isFormOpen && (editingAppointment ? canUpdate : canCreate) && <AppointmentForm key={formKey} initialData={editingAppointment} onSubmit={handleSubmit} onCancel={closeForm} submitting={submitting} disabled={deletingId !== null} optionsRevision={optionsRevision} />}
       {submitError && <div className="clients-feedback clients-feedback-error" role="alert">{submitError}</div>}
       {deleteError && <div className="clients-feedback clients-feedback-error" role="alert">{deleteError}</div>}
       <section className="clients-panel">
@@ -160,8 +172,8 @@ export default function AppointmentsPage() {
                 <td>{formatAppointmentPrice(appointment.price)}</td>
                 <td><span className={appointmentStatuses[appointment.status]?.className || "badge"}>{appointmentStatuses[appointment.status]?.label || "Status indisponível"}</span></td>
                 <td><div className="clients-table-actions">
-                  <button type="button" className="clients-action-button clients-action-edit" onClick={() => openForm(appointment)} disabled={busy}>Editar</button>
-                  <button type="button" className="clients-action-button clients-action-delete" onClick={() => handleDelete(appointment)} disabled={busy}>{deletingId === appointment.id ? "Excluindo..." : "Excluir"}</button>
+                  {canUpdate && (<button type="button" className="clients-action-button clients-action-edit" onClick={() => openForm(appointment)} disabled={busy}>Editar</button>)}
+                  {canDelete && (<button type="button" className="clients-action-button clients-action-delete" onClick={() => handleDelete(appointment)} disabled={busy}>{deletingId === appointment.id ? "Excluindo..." : "Excluir"}</button>)}
                 </div></td>
               </tr>
             ))}</tbody>
