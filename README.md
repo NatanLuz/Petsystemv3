@@ -6,8 +6,6 @@ O PetSystem V3 é um sistema de gerenciamento para PetShops e/ou clínicas veter
 
 ## Stack Do Projeto & Estrutura
 
-
-
 ## Estrutura Backend
 
 | Tecnologia |
@@ -17,7 +15,6 @@ O PetSystem V3 é um sistema de gerenciamento para PetShops e/ou clínicas veter
 | API REST | Comunicação entre frontend e backend |
 | Eloquent ORM | Mapeamento objeto-relacional |
 | Laravel Sanctum | Autenticação da API |
-
 
 ## Frontend
 
@@ -199,4 +196,4 @@ O projeto utiliza Git e GitHub para controle de versão, seguindo o padrão de c
 
 Linkedin: https://www.linkedin.com/in/natandaluz/
 
-Email: Natandaluz01@gmail.com
+Email: natandaluz01@gmail.com
