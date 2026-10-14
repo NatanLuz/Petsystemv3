@@ -12,7 +12,7 @@ Este documento instrui a preparação do ambiente de desenvolvimento local para 
 
 ---
 
-## 🐬 ETAPA 1: Configuração do Backend (Laravel)
+## ETAPA 1: Configuração do Backend (Laravel)
 
 1. Entre no diretório do backend:
    ```bash
@@ -48,7 +48,7 @@ Este documento instrui a preparação do ambiente de desenvolvimento local para 
 
 ---
 
-## ⚛️ ETAPA 2: Configuração do Frontend (React + Vite)
+## ETAPA 2: Configuração do Frontend (React + Vite)
 
 1. Entre no diretório do frontend:
    ```bash
@@ -77,6 +77,7 @@ Este documento instrui a preparação do ambiente de desenvolvimento local para 
 ## 🔍 Teste de Integração Health Check
 
 Para confirmar que a comunicação entre React e Laravel está funcionando:
+
 1. Com o backend rodando na porta 8000, verifique se a aplicação está viva:
    `GET http://127.0.0.1:8000/api/health/live`
 2. Verifique se a aplicação está pronta e conectada ao MySQL:
