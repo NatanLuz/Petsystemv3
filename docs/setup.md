@@ -1,4 +1,4 @@
-# Guia de Configuração de Ambiente — PETSYSTEM V3
+# Guia prático de Configuração de Ambiente — PETSYSTEM V3
 
 Este documento instrui a preparação do ambiente de desenvolvimento local para o backend Laravel e frontend React.
 
