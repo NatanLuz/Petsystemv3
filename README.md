@@ -64,9 +64,9 @@ PetSystem V3
 
 - **docs/:** reúne a documentação técnica do projeto.
 
-## Comunicação entre as camadas
+## Comunicação entre cada camada
 
-O fluxo principal de comunicação do sistema segue o seguinte caminho:
+O fluxo principal de comunicação do sistema segue o seguinte caminho :
 
 ```
 React
