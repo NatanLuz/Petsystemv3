@@ -1,198 +1,33 @@
-## PetSystem V3
+# PetSystem V3
 
-## Descrição sobre o projeto
-
-O PetSystem V3 é um sistema de gerenciamento para PetShops e/ou clínicas veterinárias, desenvolvido com uma arquitetura separada entre backend e frontend. O objetivo é permitir o gerenciamento de informações como clientes, pets, serviços e agendamentos, além de autenticação e controle de acesso. Este projeto também é utilizado como projeto de estudo e portfólio, com o propósito de demonstrar conhecimentos em desenvolvimento backend, APIs REST, frontend React, banco de dados relacional, autenticação, arquitetura de software, Git e boas práticas de desenvolvimento. Sempre de maneira limpa e clara.
-
-## Stack Do Projeto & Estrutura
-
-## Estrutura Backend
-
-| Tecnologia |
-| PHP | Linguagem principal do backend |
-| Laravel | Framework backend |
-| API REST | Comunicação entre frontend e backend |
-| Eloquent ORM | Mapeamento objeto-relacional |
-| Laravel Sanctum | Autenticação da API |
-
-## Frontend
-
-| Tecnologia | Finalidade |
-| React | Biblioteca para construção da interface |
-| JavaScript | Linguagem principal do frontend |
-| Vite | Build tool e ambiente de desenvolvimento |
-| React Router | Roteamento entre páginas |
-| Axios | Consumo da API REST |
-
-## Banco de dados
-
-| Tecnologia | Finalidade |
-| MySQL | Banco de dados do projeto |
-
-## Arquitetura
-
-```
-PetSystem V3
-│
-├── backend/
-│   └── Laravel + PHP
-│       ├── API REST
-│       ├── Eloquent ORM
-│       └── Laravel Sanctum
-│
-├── frontend/
-│   └── React
-│       ├── Vite
-│       ├── React Router
-│       └── Axios
-│
-├── docs/
-│   └── documentação
-│
-└── MySQL
-```
-
-**Responsabilidade e Funcionalidades de cada camada:**
-
-- **Backend (Laravel/PHP):** responsável por expor a API REST, aplicar as regras de negócio, gerenciar autenticação e realizar a comunicação com o banco de dados através do Eloquent ORM.
-
-- **Frontend (React):** responsável pela interface do usuário, consumindo os dados fornecidos pela API através de requisições HTTP feitas com Axios.
-
-- **Banco de dados (MySQL):** responsável pelo armazenamento persistente das informações do sistema.
-
-- **docs/:** reúne a documentação técnica do projeto.
-
-## Comunicação entre cada camada
-
-O fluxo principal de comunicação do sistema segue o seguinte caminho :
-
-```
-React
-  ↓
-Axios
-  ↓
-Laravel REST API
-  ↓
-Eloquent ORM
-  ↓
-MySQL
-```
-
-O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados MySQL.
+Aplicação web para apoiar a rotina de uma clínica veterinária, com API Laravel e frontend React. O projeto demonstra autenticação, autorização por perfil, operações de cadastro e integração com MySQL.
 
 ## Funcionalidades
 
-## Em desenvolvimento
+- Autenticação de sessão com Laravel Sanctum e bloqueio de usuários inativos.
+- Acesso por perfil: administrador, recepção e veterinário; a API valida as operações autorizadas.
+- Cadastro e consulta de clientes, pets, serviços e agendamentos.
+- Dashboard com contagens de clientes e pets e agendamentos de hoje. A contagem diária usa o horário local da clínica em `America/Sao_Paulo` e considera agendamentos `scheduled` e `confirmed`; cancelamentos não entram. O Dashboard não apresenta faturamento.
+- Estados de carregamento, falha, tentativa novamente e ausência de registros nas telas pertinentes.
 
-- Estrutura inicial do projeto
-- Backend Laravel
-- Frontend React
-- Configuração da API
-- Configuração do MySQL
+## Stack
 
-## Planejado
+- Backend: PHP 8.2+, Laravel 12, Laravel Sanctum e MySQL.
+- Frontend: React 18, React Router, Axios e Vite 6.
+- Testes: PHPUnit no backend e `node:test` nos testes unitários do frontend.
 
-- Autenticação de usuários
-- Login e logout
-- Controle de acesso
-- Dashboard
-- Gerenciamento de clientes
-- Gerenciamento de pets
-- Gerenciamento de serviços
-- Gerenciamento de agendamentos
-- Relacionamentos entre clientes e pets
-- Integração completa entre frontend e backend
-- Validações
-- Tratamento de erros
-- Testes automatizados
+## Executar localmente
 
-> As funcionalidades listadas em "Planejado" ainda não foram implementadas.
+Consulte [`docs/setup.md`](docs/setup.md) para requisitos, criação do banco local, configuração Sanctum/CORS, instalação, primeiro usuário ativo e execução segura dos testes. O guia separa os comandos que alteram o banco.
 
-## Estrutura do projeto
+## Testes disponíveis
 
-```
-pet-system-v3/
-├── backend/
-├── frontend/
-├── docs/
-├── README.md
-└── .gitignore
-```
+O repositório contém testes de API, autenticação, autorização por perfil, permissões do frontend e funções de métricas do Dashboard. Os comandos e o isolamento do banco estão documentados em [`docs/setup.md`](docs/setup.md). Não há aqui uma declaração de que os testes passaram no estado atual do repositório.
 
-- **backend/:** código-fonte da API desenvolvida em Laravel.
-- **frontend/:** código-fonte da aplicação React.
-- **docs/:** documentação técnica do projeto.
-- **README.md:** apresentação geral do projeto.
-- **.gitignore:** arquivos e pastas ignorados pelo Git.
+## Estado do projeto
 
-## Objetivos técnicos
+As áreas listadas acima estão implementadas no código. O projeto continua em validação e não inclui neste repositório um processo de implantação de produção. Não há sistema de pagamentos ou métrica de receita confirmada.
 
-O PetSystem V3 busca aplicar, ao longo do seu desenvolvimento:
+## Contato profissional
 
-- Arquitetura organizada
-- API REST
-- Separação de responsabilidades
-- Padrão MVC no backend Laravel
-- Uso do Eloquent ORM
-- Autenticação e autorização
-- Validação de dados
-- Boas práticas de segurança
-- Componentização no React
-- Organização modular do frontend
-- Banco de dados relacional
-- Versionamento com Git e GitHub
-- Testes automatizados
-- Documentação técnica
-
-## Instalação
-
-> Os comandos específicos de instalação e execução serão atualizados conforme a estrutura definitiva do projeto for implementada.
-
-## Backend
-
-Necessário ter instalado:
-
-- PHP
-- Composer
-- MySQL
-
-## Frontend
-
-Necessário ter instalado:
-
-- Node.js
-- npm
-
-## Desenvolvimento
-
-O projeto será desenvolvido de maneira incremental, seguindo as seguintes etapas:
-
-1. Arquitetura
-2. Banco de dados
-3. Backend/API
-4. Autenticação
-5. Frontend
-6. Integração
-7. Testes
-8. Segurança
-9. Documentação
-10. Deploy
-
-## Versionamento Ordem de commits (Git)
-
-O projeto utiliza Git e GitHub para controle de versão, seguindo o padrão de commits semânticos, por exemplo:
-
-- `feat:` — nova funcionalidade
-- `fix:` — correção de bug
-- `refactor:` — refatoração de código
-- `docs:` — alterações na documentação
-- `test:` — adição ou ajuste de testes
-- `chore:` — tarefas de manutenção geral
-
-## Autor
-
-**Natan Da Luz**
-
-Linkedin: https://www.linkedin.com/in/natandaluz/
-
-Email: natandaluz01@gmail.com
+- [LinkedIn — Natan Da Luz](https://www.linkedin.com/in/natandaluz/)
