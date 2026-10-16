@@ -9,7 +9,6 @@ O PetSystem V3 é um sistema de gerenciamento para PetShops e/ou clínicas veter
 ## Estrutura Backend
 
 | Tecnologia |
-
 | PHP | Linguagem principal do backend |
 | Laravel | Framework backend |
 | API REST | Comunicação entre frontend e backend |
@@ -19,7 +18,6 @@ O PetSystem V3 é um sistema de gerenciamento para PetShops e/ou clínicas veter
 ## Frontend
 
 | Tecnologia | Finalidade |
-
 | React | Biblioteca para construção da interface |
 | JavaScript | Linguagem principal do frontend |
 | Vite | Build tool e ambiente de desenvolvimento |
@@ -83,6 +81,7 @@ MySQL
 O frontend React consome os endpoints disponibilizados pela API Laravel através de requisições HTTP feitas com Axios. O Laravel processa essas requisições, aplica as regras de negócio e utiliza o Eloquent ORM para interagir com o banco de dados MySQL.
 
 ## Funcionalidades
+
 ## Em desenvolvimento
 
 - Estrutura inicial do projeto
@@ -151,7 +150,7 @@ O PetSystem V3 busca aplicar, ao longo do seu desenvolvimento:
 
 ## Backend
 
-Será necessário ter instalado:
+Necessário ter instalado:
 
 - PHP
 - Composer
