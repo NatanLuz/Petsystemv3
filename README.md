@@ -1,4 +1,4 @@
-# PetSystem V3
+# PetSystemV3
 
 Aplicação web para apoiar a rotina de uma clínica veterinária, com API Laravel e frontend React. O projeto demonstra autenticação, autorização por perfil, operações de cadastro e integração com MySQL.
 
