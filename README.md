@@ -21,7 +21,7 @@ PROJETO FINALIZADO PASSANDO POR TESTES e CONFERENCIA !
 
 Consulte [`docs/setup.md`](docs/setup.md) para requisitos, criação do banco local, configuração Sanctum/CORS, instalação, primeiro usuário ativo e execução segura dos testes. O guia separa os comandos que alteram o banco.
 
-## Testes disponíveis
+## Testes disponíveis da aplicação
 
 O repositório contém testes de API, autenticação, autorização por perfil, permissões do frontend e funções de métricas do Dashboard. Os comandos e o isolamento do banco estão documentados em [`docs/setup.md`](docs/setup.md). Não há aqui uma declaração de que os testes passaram no estado atual do repositório.
 
