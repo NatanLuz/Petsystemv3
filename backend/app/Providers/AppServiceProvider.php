@@ -42,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
             'appointments.create' => $all,
             'appointments.update' => $all,
             'appointments.delete' => $admin,
+            'attendances.view' => $all,
+            'attendances.create' => $all,
+            'attendances.update' => $all,
+            'attendances.delete' => $admin,
+            'dashboard.finance.view' => $operations,
         ];
 
         foreach ($capabilities as $ability => $roles) {
