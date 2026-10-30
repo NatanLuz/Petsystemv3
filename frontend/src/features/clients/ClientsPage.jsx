@@ -2,6 +2,7 @@ import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useState } from "react";
 import ClientForm from "./ClientForm";
+import { filterClients } from "./clientSearch";
 import {
   createClient,
   deleteClient,
@@ -27,19 +28,10 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [successMessage, setSuccessMessage] = useState(null);
 
-  const filteredClients = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return clients;
-    }
-
-    return clients.filter((client) =>
-      [client.name, client.email, client.phone].some((value) =>
-        String(value || "").toLowerCase().includes(normalizedSearch),
-      ),
-    );
-  }, [clients, searchTerm]);
+  const filteredClients = useMemo(
+    () => filterClients(clients, searchTerm),
+    [clients, searchTerm],
+  );
 
   function clearOperationMessages() {
     setSuccessMessage(null);
@@ -283,7 +275,7 @@ export default function ClientsPage() {
           )}
 
         {!loading && !error && filteredClients.length > 0 && (
-          <div className="clients-table-wrapper">
+          <div className="clients-table-wrapper" role="region" aria-label="Tabela de clientes" tabIndex={0}>
             <table className="clients-table">
               <thead>
                 <tr>

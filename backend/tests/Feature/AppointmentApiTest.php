@@ -33,6 +33,7 @@ class AppointmentApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $appointment->id)
+            ->assertJsonPath('0.scheduled_at', '2026-09-25 14:00:00')
             ->assertJsonPath('0.pet.id', $pet->id)
             ->assertJsonPath('0.pet.client.id', $client->id)
             ->assertJsonPath('0.service.id', $service->id);
@@ -44,11 +45,16 @@ class AppointmentApiTest extends TestCase
         $pet = $this->createPet($client);
         $service = $this->createService();
 
-        $response = $this->postJson('/api/appointments', $this->validPayload($pet, $service));
+        $response = $this->postJson('/api/appointments', $this->validPayload(
+            $pet,
+            $service,
+            ['scheduled_at' => '2026-10-13 10:00:00'],
+        ));
 
         $response
             ->assertCreated()
             ->assertJsonPath('pet_id', $pet->id)
+            ->assertJsonPath('scheduled_at', '2026-10-13 10:00:00')
             ->assertJsonPath('service_id', $service->id)
             ->assertJsonPath('pet.client.id', $client->id)
             ->assertJsonPath('service.id', $service->id);
@@ -56,8 +62,27 @@ class AppointmentApiTest extends TestCase
         $this->assertDatabaseHas('appointments', [
             'pet_id' => $pet->id,
             'service_id' => $service->id,
-            'scheduled_at' => '2026-09-25 14:00:00',
+            'scheduled_at' => '2026-10-13 10:00:00',
             'notes' => 'Primeira consulta',
+        ]);
+    }
+
+    public function test_it_preserves_clinic_local_scheduled_at_when_editing(): void
+    {
+        $appointment = $this->createAppointment(
+            $this->createPet($this->createClient()),
+            $this->createService(),
+            ['scheduled_at' => '2026-10-13 09:00:00'],
+        );
+
+        $this->patchJson('/api/appointments/'.$appointment->id, [
+            'scheduled_at' => '2026-10-13 10:00:00',
+        ])->assertOk()
+            ->assertJsonPath('scheduled_at', '2026-10-13 10:00:00');
+
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'scheduled_at' => '2026-10-13 10:00:00',
         ]);
     }
 
@@ -171,6 +196,26 @@ class AppointmentApiTest extends TestCase
         ]))->assertUnprocessable()->assertJsonValidationErrors(['scheduled_at']);
     }
 
+    public function test_it_rejects_invalid_schedule_and_status_when_updating(): void
+    {
+        $appointment = $this->createAppointment(
+            $this->createPet($this->createClient()),
+            $this->createService(),
+        );
+
+        $this->patchJson('/api/appointments/'.$appointment->id, [
+            'scheduled_at' => 'not-a-date',
+            'status' => 'completed',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['scheduled_at', 'status']);
+
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'scheduled_at' => '2026-09-25 14:00:00',
+            'status' => 'scheduled',
+        ]);
+    }
+
     public function test_it_rejects_invalid_status(): void
     {
         $pet = $this->createPet($this->createClient());
@@ -205,6 +250,7 @@ class AppointmentApiTest extends TestCase
         $this->getJson('/api/appointments/'.$appointment->id)
             ->assertOk()
             ->assertJsonPath('id', $appointment->id)
+            ->assertJsonPath('scheduled_at', '2026-09-25 14:00:00')
             ->assertJsonPath('pet.id', $pet->id)
             ->assertJsonPath('pet.client.id', $client->id)
             ->assertJsonPath('service.id', $service->id);
@@ -228,6 +274,68 @@ class AppointmentApiTest extends TestCase
             'id' => $appointment->id,
             'status' => 'confirmed',
             'notes' => 'Confirmado por telefone',
+        ]);
+    }
+
+    public function test_it_updates_pet_and_service_relationships_and_preserves_local_time(): void
+    {
+        $originalPet = $this->createPet($this->createClient());
+        $newClient = $this->createClient([
+            'name' => 'Novo Tutor',
+            'email' => 'novo-tutor@example.com',
+        ]);
+        $newPet = $this->createPet($newClient, ['name' => 'Luna']);
+        $originalService = $this->createService();
+        $newService = $this->createService([
+            'name' => 'Retorno',
+            'price' => '275.90',
+            'duration_minutes' => 45,
+        ]);
+        $appointment = $this->createAppointment(
+            $originalPet,
+            $originalService,
+            ['scheduled_at' => '2026-10-13 09:00:00'],
+        );
+
+        $this->patchJson('/api/appointments/'.$appointment->id, [
+            'pet_id' => $newPet->id,
+            'service_id' => $newService->id,
+            'scheduled_at' => '2026-10-13 10:00:00',
+        ])->assertOk()
+            ->assertJsonPath('pet_id', $newPet->id)
+            ->assertJsonPath('pet.client.id', $newClient->id)
+            ->assertJsonPath('service.id', $newService->id)
+            ->assertJsonPath('scheduled_at', '2026-10-13 10:00:00')
+            ->assertJsonPath('price', '275.90')
+            ->assertJsonPath('duration_minutes', 45);
+
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'pet_id' => $newPet->id,
+            'service_id' => $newService->id,
+            'scheduled_at' => '2026-10-13 10:00:00',
+            'price' => '275.90',
+            'duration_minutes' => 45,
+        ]);
+    }
+
+    public function test_it_rejects_nonexistent_relationships_when_updating_an_appointment(): void
+    {
+        $pet = $this->createPet($this->createClient());
+        $service = $this->createService();
+        $appointment = $this->createAppointment($pet, $service);
+
+        $this->patchJson('/api/appointments/'.$appointment->id, [
+            'pet_id' => 999999,
+            'service_id' => 999999,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['pet_id', 'service_id']);
+
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'pet_id' => $pet->id,
+            'service_id' => $service->id,
+            'scheduled_at' => '2026-09-25 14:00:00',
         ]);
     }
 

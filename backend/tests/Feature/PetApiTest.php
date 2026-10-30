@@ -159,6 +159,44 @@ class PetApiTest extends TestCase
         ]);
     }
 
+    public function test_it_can_reassign_a_pet_to_another_existing_client(): void
+    {
+        $originalClient = $this->createClient();
+        $newClient = $this->createClient([
+            'name' => 'Novo Tutor',
+            'email' => 'novo-tutor@example.com',
+        ]);
+        $pet = $this->createPet($originalClient);
+
+        $this->patchJson("/api/pets/{$pet->id}", [
+            'client_id' => $newClient->id,
+        ])->assertOk()
+            ->assertJsonPath('client_id', $newClient->id)
+            ->assertJsonPath('client.id', $newClient->id)
+            ->assertJsonPath('client.name', 'Novo Tutor');
+
+        $this->assertDatabaseHas('pets', [
+            'id' => $pet->id,
+            'client_id' => $newClient->id,
+        ]);
+    }
+
+    public function test_it_rejects_reassigning_a_pet_to_a_nonexistent_client(): void
+    {
+        $originalClient = $this->createClient();
+        $pet = $this->createPet($originalClient);
+
+        $this->patchJson("/api/pets/{$pet->id}", [
+            'client_id' => 999999,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['client_id']);
+
+        $this->assertDatabaseHas('pets', [
+            'id' => $pet->id,
+            'client_id' => $originalClient->id,
+        ]);
+    }
+
     public function test_partial_update_does_not_change_public_code(): void
     {
         $client = $this->createClient();

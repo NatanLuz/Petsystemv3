@@ -12,7 +12,11 @@ class AppointmentController extends Controller
 {
     public function index()
     {
-        return response()->json(Appointment::with(['pet.client', 'service'])->get());
+        $appointments = Appointment::with(['pet.client', 'service'])->get();
+
+        return response()->json($appointments->map(
+            fn (Appointment $appointment) => $this->serializeAppointment($appointment),
+        ));
     }
 
     public function store(StoreAppointmentRequest $request)
@@ -28,14 +32,14 @@ class AppointmentController extends Controller
 
         $appointment->load(['pet.client', 'service']);
 
-        return response()->json($appointment, 201);
+        return response()->json($this->serializeAppointment($appointment), 201);
     }
 
     public function show(Appointment $appointment)
     {
         $appointment->load(['pet.client', 'service']);
 
-        return response()->json($appointment);
+        return response()->json($this->serializeAppointment($appointment));
     }
 
     public function update(UpdateAppointmentRequest $request, Appointment $appointment)
@@ -64,7 +68,7 @@ class AppointmentController extends Controller
         $appointment->update($validated);
         $appointment->load(['pet.client', 'service']);
 
-        return response()->json($appointment);
+        return response()->json($this->serializeAppointment($appointment));
     }
 
     public function destroy(Appointment $appointment)
@@ -72,5 +76,19 @@ class AppointmentController extends Controller
         $appointment->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Keep scheduled_at as the clinic's timezone-free operational wall time.
+     * Other model timestamps retain Laravel's standard UTC JSON serialization.
+     *
+     * @return array<string, mixed>
+     */
+    private function serializeAppointment(Appointment $appointment): array
+    {
+        $data = $appointment->toArray();
+        $data['scheduled_at'] = $appointment->getRawOriginal('scheduled_at');
+
+        return $data;
     }
 }

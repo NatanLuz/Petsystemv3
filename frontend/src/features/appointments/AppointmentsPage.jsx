@@ -1,7 +1,8 @@
 import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import AppointmentForm, { appointmentStatuses, formatAppointmentDate, formatAppointmentPrice, toOperationalInput } from "./AppointmentForm";
+import AppointmentForm, { appointmentStatuses, formatAppointmentDate, formatAppointmentPrice } from "./AppointmentForm";
+import { filterAppointments } from "./appointmentSearch";
 import { createAppointment, deleteAppointment, listAppointments, updateAppointment } from "./appointmentService";
 
 const fieldLabels = {
@@ -41,14 +42,10 @@ export default function AppointmentsPage() {
   const operationPending = useRef(false);
   const busy = submitting || deletingId !== null;
 
-  const filteredAppointments = useMemo(() => {
-    const search = searchTerm.trim().toLowerCase();
-    return appointments.filter((appointment) => [appointment.pet?.name,
-      appointment.pet?.client?.name, appointment.pet?.public_code, appointment.service?.name,
-      appointmentStatuses[appointment.status]?.label, formatAppointmentDate(appointment.scheduled_at)]
-      .some((value) => String(value ?? "").toLowerCase().includes(search)))
-      .sort((a, b) => toOperationalInput(a.scheduled_at).localeCompare(toOperationalInput(b.scheduled_at)) || Number(a.id) - Number(b.id));
-  }, [appointments, searchTerm]);
+  const filteredAppointments = useMemo(
+    () => filterAppointments(appointments, searchTerm, appointmentStatuses),
+    [appointments, searchTerm],
+  );
 
   useEffect(() => {
     let active = true;
@@ -160,7 +157,7 @@ export default function AppointmentsPage() {
         {!loading && error && <div className="clients-state clients-state-error" role="alert">{error}</div>}
         {!loading && !error && appointments.length === 0 && <div className="clients-state">Nenhum agendamento cadastrado.</div>}
         {!loading && !error && appointments.length > 0 && filteredAppointments.length === 0 && <div className="clients-state">Nenhum agendamento encontrado para esta busca.</div>}
-        {!loading && !error && filteredAppointments.length > 0 && <div className="clients-table-wrapper">
+        {!loading && !error && filteredAppointments.length > 0 && <div className="clients-table-wrapper" role="region" aria-label="Tabela de agendamentos" tabIndex={0}>
           <table className="clients-table">
             <thead><tr><th>Data/Hora</th><th>Pet</th><th>Tutor</th><th>Serviço</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody>{filteredAppointments.map((appointment) => (

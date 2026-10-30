@@ -2,6 +2,7 @@ import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PetForm from "./PetForm";
+import { filterPets } from "./petSearch";
 import { createPet, deletePet, listPets, updatePet } from "./petService";
 
 const fieldLabels = {
@@ -29,13 +30,10 @@ export default function PetsPage() {
   const operationPending = useRef(false);
   const busy = submitting || deletingPetId !== null;
 
-  const filteredPets = useMemo(() => {
-    const search = searchTerm.trim().toLowerCase();
-    return pets.filter((pet) =>
-      [pet.name, pet.public_code, pet.species, pet.breed, pet.client?.name]
-        .some((value) => String(value ?? "").toLowerCase().includes(search)),
-    );
-  }, [pets, searchTerm]);
+  const filteredPets = useMemo(
+    () => filterPets(pets, searchTerm),
+    [pets, searchTerm],
+  );
 
   useEffect(() => {
     let active = true;
@@ -165,7 +163,7 @@ export default function PetsPage() {
           <div className="clients-state">Nenhum pet encontrado para esta busca.</div>
         )}
         {!loading && !error && filteredPets.length > 0 && (
-          <div className="clients-table-wrapper">
+          <div className="clients-table-wrapper" role="region" aria-label="Tabela de pets" tabIndex={0}>
             <table className="clients-table">
               <thead><tr><th>Código</th><th>Nome</th><th>Espécie</th><th>Raça</th><th>Tutor</th><th>Ações</th></tr></thead>
               <tbody>

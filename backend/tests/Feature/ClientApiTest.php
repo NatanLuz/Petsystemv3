@@ -105,6 +105,21 @@ class ClientApiTest extends TestCase
         ]);
     }
 
+    public function test_it_rejects_invalid_client_fields_on_update_without_changing_the_record(): void
+    {
+        $client = $this->createClient();
+
+        $this->patchJson("/api/clients/{$client->id}", [
+            'email' => 'not-an-email',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertDatabaseHas('clients', [
+            'id' => $client->id,
+            'email' => $client->email,
+        ]);
+    }
+
     public function test_it_deletes_an_existing_client(): void
     {
         $client = $this->createClient();

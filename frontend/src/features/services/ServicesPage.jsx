@@ -2,6 +2,7 @@ import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ServiceForm from "./ServiceForm";
+import { filterServices } from "./serviceSearch";
 import {
   createService,
   deleteService,
@@ -50,19 +51,10 @@ export default function ServicesPage() {
   const operationPending = useRef(false);
   const busy = submitting || deletingServiceId !== null;
 
-  const filteredServices = useMemo(() => {
-    const search = searchTerm.trim().toLowerCase();
-
-    if (!search) {
-      return services;
-    }
-
-    return services.filter((service) =>
-      [service.name, service.description].some((value) =>
-        String(value ?? "").toLowerCase().includes(search),
-      ),
-    );
-  }, [services, searchTerm]);
+  const filteredServices = useMemo(
+    () => filterServices(services, searchTerm),
+    [services, searchTerm],
+  );
 
   useEffect(() => {
     let active = true;
@@ -302,7 +294,7 @@ export default function ServicesPage() {
           )}
 
         {!loading && !error && filteredServices.length > 0 && (
-          <div className="clients-table-wrapper">
+          <div className="clients-table-wrapper" role="region" aria-label="Tabela de serviços" tabIndex={0}>
             <table className="clients-table">
               <thead>
                 <tr>

@@ -16,7 +16,14 @@ const pageTitles = {
 export default function Topbar() {
   const location = useLocation();
   const { user, status } = useAuth();
-  const initials = user?.name?.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  const profileLabel = user
+    ? roleLabels[user.role] || 'Perfil indisponível'
+    : status === 'checking'
+      ? 'Verificando sessão...'
+      : status === 'error'
+        ? 'Sessão não verificada'
+        : 'Visitante';
+  const initials = user ? profileLabel.slice(0, 2).toLocaleUpperCase('pt-BR') : '?';
   const title = pageTitles[location.pathname] || 'PetSystem';
 
   return (
@@ -25,12 +32,9 @@ export default function Topbar() {
         <h1>{title}</h1>
       </div>
 
-      <div className="topbar-user" aria-label="Usuário atual">
+      <div className="topbar-user" role="group" aria-label="Perfil do usuário atual">
         <span className="topbar-avatar" aria-hidden="true">{initials || '?'}</span>
-        <div>
-          <strong>{user?.name || (status === 'checking' ? 'Verificando sessão...' : status === 'error' ? 'Sessão não verificada' : 'Visitante')}</strong>
-          {user && <p>{roleLabels[user.role] || user.role}</p>}
-        </div>
+        <strong className="topbar-user-name">{profileLabel}</strong>
       </div>
     </header>
   );
