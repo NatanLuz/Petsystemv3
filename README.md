@@ -2,8 +2,6 @@
 
 Aplicação Web para apoiar a rotina de uma clínica veterinária, com API Laravel e frontend React. O projeto demonstra autenticação, autorização por perfil, operações de cadastro e integração com MySQL.
 
-PROJETO PASSANDO POR TESTES.
-
 ## Funcionalidades
 
 - Autenticação de sessão com Laravel Sanctum e bloqueio de usuários inativos.
