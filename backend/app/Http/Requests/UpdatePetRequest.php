@@ -30,7 +30,11 @@ class UpdatePetRequest extends FormRequest
             'sex' => ['sometimes', 'nullable', 'string', 'max:20'],
             'birth_date' => ['sometimes', 'nullable', 'date', 'before_or_equal:today'],
             'weight' => ['sometimes', 'nullable', 'numeric', 'gt:0', 'max:9999.999'],
+            'size' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'color' => ['sometimes', 'nullable', 'string', 'max:100'],
             'notes' => ['sometimes', 'nullable', 'string'],
+            'allergies' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'behavior_alerts' => ['sometimes', 'nullable', 'string', 'max:5000'],
         ];
     }
 }

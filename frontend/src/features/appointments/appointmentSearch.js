@@ -13,3 +13,9 @@ export function filterAppointments(appointments, searchTerm, statusLabels) {
   ].some((value) => String(value ?? "").toLowerCase().includes(search)))
     .sort((a, b) => toOperationalInput(a.scheduled_at).localeCompare(toOperationalInput(b.scheduled_at)) || Number(a.id) - Number(b.id));
 }
+
+export function filterAppointmentsByDate(appointments, date) {
+  if (!date) return appointments;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return appointments;
+  return appointments.filter((appointment) => String(appointment.scheduled_at ?? '').slice(0, 10) === date);
+}

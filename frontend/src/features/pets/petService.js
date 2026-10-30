@@ -5,6 +5,11 @@ export async function listPets() {
   return response.data;
 }
 
+export async function getPetById(id) {
+  const response = await api.get(`/pets/${id}`);
+  return response.data;
+}
+
 export async function createPet(data) {
   const response = await api.post("/pets", data);
   return response.data;

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { digitsOnly, formatPhone, normalizeEmail } from "./contactFormat";
 
 function getInitialFormData(initialData) {
   return {
     name: initialData?.name ?? "",
     email: initialData?.email ?? "",
-    phone: initialData?.phone ?? "",
+    phone: formatPhone(initialData?.phone ?? ""),
     address: initialData?.address ?? "",
   };
 }
@@ -14,11 +15,13 @@ export default function ClientForm({
   submitting = false,
   initialData = null,
   onCancel,
+  fieldErrors = {},
 }) {
   const [formData, setFormData] = useState(() =>
     getInitialFormData(initialData),
   );
   const isEditing = initialData !== null;
+  const errorFor = (field) => fieldErrors[field]?.[0];
 
   useEffect(() => {
     setFormData(getInitialFormData(initialData));
@@ -27,9 +30,10 @@ export default function ClientForm({
   function handleChange(event) {
     const { name, value } = event.target;
 
+    const normalizedValue = name === "phone" ? formatPhone(value) : value;
     setFormData((currentData) => ({
       ...currentData,
-      [name]: value,
+      [name]: normalizedValue,
     }));
   }
 
@@ -40,7 +44,11 @@ export default function ClientForm({
       return;
     }
 
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      phone: digitsOnly(formData.phone),
+      email: normalizeEmail(formData.email),
+    });
   }
 
   return (
@@ -59,8 +67,10 @@ export default function ClientForm({
             value={formData.name}
             onChange={handleChange}
             required
+            aria-invalid={!!errorFor("name")}
             disabled={submitting}
           />
+          {errorFor("name") && <span className="client-field-error" role="alert">{errorFor("name")}</span>}
         </label>
 
         <label className="client-field">
@@ -71,7 +81,9 @@ export default function ClientForm({
             value={formData.email}
             onChange={handleChange}
             disabled={submitting}
+            aria-invalid={!!errorFor("email")}
           />
+          {errorFor("email") && <span className="client-field-error" role="alert">{errorFor("email")}</span>}
         </label>
 
         <label className="client-field">
@@ -82,8 +94,10 @@ export default function ClientForm({
             value={formData.phone}
             onChange={handleChange}
             required
+            aria-invalid={!!errorFor("phone")}
             disabled={submitting}
           />
+          {errorFor("phone") && <span className="client-field-error" role="alert">{errorFor("phone")}</span>}
         </label>
 
         <label className="client-field">

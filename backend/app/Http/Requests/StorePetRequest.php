@@ -30,7 +30,11 @@ class StorePetRequest extends FormRequest
             'sex' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
             'weight' => ['nullable', 'numeric', 'gt:0', 'max:9999.999'],
+            'size' => ['nullable', 'string', 'max:30'],
+            'color' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
+            'allergies' => ['nullable', 'string', 'max:5000'],
+            'behavior_alerts' => ['nullable', 'string', 'max:5000'],
         ];
     }
 }

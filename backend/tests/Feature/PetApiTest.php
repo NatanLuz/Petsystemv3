@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Client;
 use App\Models\User;
 use App\Models\Pet;
+use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,6 +39,36 @@ class PetApiTest extends TestCase
             'name' => 'Rex',
             'species' => 'Cachorro',
         ]);
+    }
+
+    public function test_it_saves_clinical_pet_details_for_veterinarian_profile(): void
+    {
+        $this->actingAs(User::factory()->active()->create(['role' => User::ROLE_VETERINARIAN]), 'web');
+        $client = $this->createClient();
+
+        $this->postJson('/api/pets', $this->validPetPayload($client, [
+            'size' => 'Médio',
+            'color' => 'Caramelo',
+            'allergies' => 'Alergia a determinado medicamento',
+            'behavior_alerts' => 'Fica ansioso durante coleta',
+        ]))->assertCreated()
+            ->assertJsonPath('size', 'Médio')
+            ->assertJsonPath('color', 'Caramelo')
+            ->assertJsonPath('allergies', 'Alergia a determinado medicamento')
+            ->assertJsonPath('behavior_alerts', 'Fica ansioso durante coleta');
+    }
+
+    public function test_clinical_pet_details_are_validated_on_update(): void
+    {
+        $client = $this->createClient();
+        $pet = $this->createPet($client);
+
+        $this->patchJson("/api/pets/{$pet->id}", [
+            'size' => str_repeat('x', 31),
+            'allergies' => str_repeat('x', 5001),
+        ])->assertUnprocessable()->assertJsonValidationErrors(['size', 'allergies']);
+
+        $this->assertDatabaseHas('pets', ['id' => $pet->id, 'size' => null, 'allergies' => null]);
     }
 
     public function test_public_code_is_generated_automatically(): void
@@ -137,6 +168,29 @@ class PetApiTest extends TestCase
             ->assertJsonPath('client.name', $client->name);
     }
 
+    public function test_veterinarian_pet_ficha_includes_appointments_and_alerts(): void
+    {
+        $client = $this->createClient();
+        $pet = $this->createPet($client, [
+            'allergies' => 'Alergia a medicamento X',
+            'behavior_alerts' => 'Ansioso durante coleta',
+        ]);
+        $service = Service::create(['name' => 'Consulta', 'price' => 100, 'duration_minutes' => 30]);
+        $pet->appointments()->create([
+            'service_id' => $service->id,
+            'scheduled_at' => '2026-10-13 10:00:00',
+            'price' => 100,
+            'duration_minutes' => 30,
+            'status' => 'confirmed',
+        ]);
+
+        $this->actingAs(User::factory()->active()->create(['role' => User::ROLE_VETERINARIAN]), 'web')
+            ->getJson("/api/pets/{$pet->id}")
+            ->assertOk()
+            ->assertJsonPath('allergies', 'Alergia a medicamento X')
+            ->assertJsonPath('appointments.0.service.name', 'Consulta');
+    }
+
     public function test_it_partially_updates_a_pet(): void
     {
         $client = $this->createClient();
@@ -157,6 +211,42 @@ class PetApiTest extends TestCase
             'name' => 'Rex Atualizado',
             'species' => $pet->species,
         ]);
+    }
+
+    public function test_pet_with_an_appointment_cannot_be_deleted(): void
+    {
+        $client = $this->createClient();
+        $pet = $this->createPet($client);
+        $service = Service::create(['name' => 'Consulta', 'price' => 90, 'duration_minutes' => 30]);
+        $pet->appointments()->create([
+            'service_id' => $service->id,
+            'scheduled_at' => '2026-10-13 10:00:00',
+            'price' => 90,
+            'duration_minutes' => 30,
+            'status' => 'cancelled',
+        ]);
+
+        $this->deleteJson('/api/pets/'.$pet->id)->assertStatus(409)
+            ->assertJsonPath('message', 'Não é possível excluir um pet que possui agendamentos ou atendimentos cadastrados.');
+        $this->assertDatabaseHas('pets', ['id' => $pet->id]);
+    }
+
+    public function test_pet_with_an_unlinked_attendance_cannot_be_deleted(): void
+    {
+        $client = $this->createClient();
+        $pet = $this->createPet($client);
+        $service = Service::create(['name' => 'Consulta', 'price' => 90, 'duration_minutes' => 30]);
+        $attendance = \App\Models\Attendance::create([
+            'client_id' => $client->id,
+            'pet_id' => $pet->id,
+            'status' => 'in_progress',
+            'started_at' => now(),
+        ]);
+        $attendance->services()->attach($service->id, ['price' => 90, 'duration_minutes' => 30]);
+
+        $this->deleteJson('/api/pets/'.$pet->id)->assertStatus(409)
+            ->assertJsonPath('message', 'Não é possível excluir um pet que possui agendamentos ou atendimentos cadastrados.');
+        $this->assertDatabaseHas('pets', ['id' => $pet->id]);
     }
 
     public function test_it_can_reassign_a_pet_to_another_existing_client(): void

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
@@ -25,6 +26,17 @@ class ClientController extends Controller
 
     public function show(Client $client)
     {
+        $client->load(['pets.appointments.service', 'pets.attendances.services']);
+        foreach ($client->pets as $pet) {
+            foreach ($pet->attendances as $attendance) {
+                if (request()->user()?->role === User::ROLE_VETERINARIAN) {
+                    $attendance->makeHidden(['amount_charged', 'payment_method']);
+                } elseif (request()->user()?->role === User::ROLE_RECEPTIONIST) {
+                    $attendance->makeHidden(['evolution']);
+                }
+            }
+        }
+
         return response()->json($client);
     }
 

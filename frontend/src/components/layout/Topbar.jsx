@@ -10,6 +10,7 @@ const pageTitles = {
   '/pets': 'Pets',
   '/services': 'Serviços',
   '/appointments': 'Agendamentos',
+  '/attendances': 'Atendimentos',
   '/health': 'Status da API',
 };
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { filterAppointments } from "./appointmentSearch.js";
+import { filterAppointments, filterAppointmentsByDate } from "./appointmentSearch.js";
 
 const statuses = {
   scheduled: { label: "Agendado" },
@@ -25,4 +25,10 @@ test("appointment results retain local-time ordering and use id as a tie breaker
   ];
 
   assert.deepEqual(filterAppointments(sameTime, "", statuses).map(({ id }) => id), [1, 3, 5].filter((id) => sameTime.some((appointment) => appointment.id === id)));
+});
+
+test("appointment list can be filtered by clinic wall date", () => {
+  assert.deepEqual(filterAppointmentsByDate(appointments, "2026-10-13").map(({ id }) => id), [2, 1]);
+  assert.deepEqual(filterAppointmentsByDate(appointments, "2026-10-14"), []);
+  assert.deepEqual(filterAppointmentsByDate(appointments, ""), appointments);
 });

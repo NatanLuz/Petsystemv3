@@ -1,6 +1,8 @@
 import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useDebouncedValue } from "../useDebouncedValue";
+import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ServiceForm from "./ServiceForm";
 import { filterServices } from "./serviceSearch";
 import {
@@ -36,6 +38,7 @@ export default function ServicesPage() {
   const canCreate = can(user, "services.create");
   const canUpdate = can(user, "services.update");
   const canDelete = can(user, "services.delete");
+  const canViewFinance = can(user, "dashboard.finance.view");
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,14 +50,17 @@ export default function ServicesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
   const operationPending = useRef(false);
   const busy = submitting || deletingServiceId !== null;
 
   const filteredServices = useMemo(
-    () => filterServices(services, searchTerm),
-    [services, searchTerm],
+    () => filterServices(services, debouncedSearch),
+    [services, debouncedSearch],
   );
+  const servicePage = getPageSlice(filteredServices, page);
 
   useEffect(() => {
     let active = true;
@@ -176,7 +182,9 @@ export default function ServicesPage() {
       return;
     }
 
-    if (!window.confirm(`Deseja realmente excluir o serviço ${service.name}?`)) {
+    const hasHistory = Number(service.appointments_count || 0) + Number(service.attendances_count || 0) > 0;
+    const actionText = hasHistory ? "desativar" : "excluir";
+    if (!window.confirm(`Deseja ${actionText} o serviço ${service.name}?${hasHistory ? " Os agendamentos existentes serão preservados." : " Esta ação não pode ser desfeita."}`)) {
       return;
     }
 
@@ -185,17 +193,20 @@ export default function ServicesPage() {
     clearOperationMessages();
 
     try {
-      await deleteService(service.id);
-      setServices((currentServices) =>
-        currentServices.filter((item) => item.id !== service.id),
-      );
+      const result = await deleteService(service.id);
+      if (result?.service) {
+        setServices((currentServices) => currentServices.map((item) =>
+          item.id === service.id ? { ...result.service, appointments_count: service.appointments_count, attendances_count: service.attendances_count } : item));
+      } else {
+        setServices((currentServices) => currentServices.filter((item) => item.id !== service.id));
+      }
 
       if (editingService?.id === service.id) {
         setEditingService(null);
         setIsFormOpen(false);
       }
 
-      setSuccessMessage("Serviço excluído com sucesso.");
+      setSuccessMessage(result?.service ? "Serviço desativado; o histórico foi preservado." : "Serviço excluído com sucesso.");
     } catch (requestError) {
       if (requestError.response?.status === 403) return;
       setDeleteError(
@@ -264,7 +275,7 @@ export default function ServicesPage() {
             type="search"
             placeholder="Buscar por nome ou descrição..."
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }}
           />
         </div>
 
@@ -299,17 +310,17 @@ export default function ServicesPage() {
               <thead>
                 <tr>
                   <th>Nome</th>
-                  <th>Preço</th>
+                  {canViewFinance && <th>Preço</th>}
                   <th>Duração</th>
                   <th>Status</th>
                   {(canUpdate || canDelete) && (<th>Ações</th>)}
                 </tr>
               </thead>
               <tbody>
-                {filteredServices.map((service) => (
+                {servicePage.items.map((service) => (
                   <tr key={service.id}>
                     <td>{service.name}</td>
-                    <td>{formatPrice(service.price)}</td>
+                    {canViewFinance && <td>{formatPrice(service.price)}</td>}
                     <td>{service.duration_minutes} min</td>
                     <td>
                       <span
@@ -339,8 +350,8 @@ export default function ServicesPage() {
                           disabled={busy}
                         >
                           {deletingServiceId === service.id
-                            ? "Excluindo..."
-                            : "Excluir"}
+                            ? "Salvando..."
+                            : Number(service.appointments_count || 0) + Number(service.attendances_count || 0) > 0 ? "Desativar" : "Excluir"}
                         </button>)}
                       </div>
                     </td>)}
@@ -350,6 +361,7 @@ export default function ServicesPage() {
             </table>
           </div>
         )}
+        {!loading && !error && filteredServices.length > DEFAULT_PAGE_SIZE && <nav className="clients-pagination" aria-label="Paginação de serviços"><span>Mostrando {servicePage.firstItem}–{servicePage.lastItem} de {servicePage.total}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={servicePage.page === 1}>Anterior</button><span>Página {servicePage.page} de {servicePage.pageCount}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.min(servicePage.pageCount, current + 1))} disabled={servicePage.page === servicePage.pageCount}>Próxima</button></nav>}
       </section>
     </section>
   );

@@ -8,7 +8,7 @@ const navigationItems = [
   { label: "Pets", to: "/pets", enabled: true },
   { label: "Serviços", to: "/services", enabled: true },
   { label: "Agendamentos", to: "/appointments", enabled: true },
-  { label: "Atendimentos", enabled: false },
+  { label: "Atendimentos", to: "/attendances", enabled: true },
 ];
 
 export default function Sidebar() {

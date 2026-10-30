@@ -1,6 +1,9 @@
 import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { useDebouncedValue } from "../useDebouncedValue";
+import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import PetForm from "./PetForm";
 import { filterPets } from "./petSearch";
 import { createPet, deletePet, listPets, updatePet } from "./petService";
@@ -8,6 +11,7 @@ import { createPet, deletePet, listPets, updatePet } from "./petService";
 const fieldLabels = {
   client_id: "Tutor", name: "Nome", species: "Espécie", breed: "Raça",
   sex: "Sexo", birth_date: "Data de nascimento", weight: "Peso", notes: "Observações",
+  size: "Porte", color: "Cor", allergies: "Alergias", behavior_alerts: "Alertas de comportamento",
 };
 
 export default function PetsPage() {
@@ -20,20 +24,24 @@ export default function PetsPage() {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [editingPet, setEditingPet] = useState(null);
   const [deletingPetId, setDeletingPetId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
   const operationPending = useRef(false);
   const busy = submitting || deletingPetId !== null;
 
   const filteredPets = useMemo(
-    () => filterPets(pets, searchTerm),
-    [pets, searchTerm],
+    () => filterPets(pets, debouncedSearch),
+    [pets, debouncedSearch],
   );
+  const petPage = getPageSlice(filteredPets, page);
 
   useEffect(() => {
     let active = true;
@@ -54,6 +62,7 @@ export default function PetsPage() {
   function clearOperationMessages() {
     setSuccessMessage(null);
     setSubmitError(null);
+    setFieldErrors({});
     setDeleteError(null);
   }
 
@@ -95,6 +104,7 @@ export default function PetsPage() {
       } else if (requestError.response?.status === 422) {
         // Use only known field names; never render arbitrary server diagnostics.
         const errors = requestError.response.data?.errors;
+        setFieldErrors(errors || {});
         const fields = Object.keys(fieldLabels).filter((field) => errors?.[field]).map((field) => fieldLabels[field]);
         setSubmitError(fields.length
           ? `Verifique os campos: ${fields.join(", ")}. Corrija os dados e tente novamente.`
@@ -144,7 +154,7 @@ export default function PetsPage() {
       </header>
       {successMessage && <div className="clients-feedback clients-feedback-success" role="status">{successMessage}</div>}
       {isFormOpen && (editingPet ? canUpdate : canCreate) && (
-        <PetForm key={formKey} initialData={editingPet} onSubmit={handleSubmitPet}
+          <PetForm key={formKey} initialData={editingPet} onSubmit={handleSubmitPet} fieldErrors={fieldErrors}
           onCancel={handleCancelForm} submitting={submitting} disabled={deletingPetId !== null} />
       )}
       {submitError && <div className="clients-feedback clients-feedback-error" role="alert">{submitError}</div>}
@@ -154,7 +164,7 @@ export default function PetsPage() {
           <label className="clients-search-label" htmlFor="pet-search">Buscar pets</label>
           <input id="pet-search" className="clients-search-input" type="search"
             placeholder="Buscar por nome, código, espécie, raça ou tutor..."
-            value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
+            value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }} />
         </div>
         {loading && <div className="clients-state" role="status">Carregando pets...</div>}
         {!loading && error && <div className="clients-state clients-state-error" role="alert">{error}</div>}
@@ -167,10 +177,10 @@ export default function PetsPage() {
             <table className="clients-table">
               <thead><tr><th>Código</th><th>Nome</th><th>Espécie</th><th>Raça</th><th>Tutor</th><th>Ações</th></tr></thead>
               <tbody>
-                {filteredPets.map((pet) => (
+                {petPage.items.map((pet) => (
                   <tr key={pet.id}>
                     <td>{pet.public_code || "Não informado"}</td>
-                    <td>{pet.name}</td>
+                    <td><Link to={`/pets/${pet.id}`}>{pet.name}</Link></td>
                     <td>{pet.species}</td>
                     <td>{pet.breed || "Não informada"}</td>
                     <td>{pet.client?.name || "Tutor indisponível"}</td>
@@ -188,6 +198,7 @@ export default function PetsPage() {
             </table>
           </div>
         )}
+        {!loading && !error && filteredPets.length > DEFAULT_PAGE_SIZE && <nav className="clients-pagination" aria-label="Paginação de pets"><span>Mostrando {petPage.firstItem}–{petPage.lastItem} de {petPage.total}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={petPage.page === 1}>Anterior</button><span>Página {petPage.page} de {petPage.pageCount}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.min(petPage.pageCount, current + 1))} disabled={petPage.page === petPage.pageCount}>Próxima</button></nav>}
       </section>
     </section>
   );

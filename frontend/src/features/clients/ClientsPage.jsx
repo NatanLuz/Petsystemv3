@@ -1,6 +1,9 @@
 import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useDebouncedValue } from "../useDebouncedValue";
+import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ClientForm from "./ClientForm";
 import { filterClients } from "./clientSearch";
 import {
@@ -20,22 +23,29 @@ export default function ClientsPage() {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [createdClient, setCreatedClient] = useState(null);
   const [formKey, setFormKey] = useState(0);
   const [editingClient, setEditingClient] = useState(null);
   const [deletingClientId, setDeletingClientId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
 
   const filteredClients = useMemo(
-    () => filterClients(clients, searchTerm),
-    [clients, searchTerm],
+    () => filterClients(clients, debouncedSearch),
+    [clients, debouncedSearch],
   );
+  const clientPage = getPageSlice(filteredClients, page);
 
   function clearOperationMessages() {
     setSuccessMessage(null);
     setSubmitError(null);
+    setFieldErrors({});
+    setCreatedClient(null);
     setDeleteError(null);
   }
 
@@ -68,6 +78,7 @@ export default function ClientsPage() {
       const createdClient = await createClient(formData);
 
       setClients((currentClients) => [...currentClients, createdClient]);
+      setCreatedClient(createdClient);
       setFormKey((currentKey) => currentKey + 1);
       setIsFormOpen(false);
       setSuccessMessage("Cliente cadastrado com sucesso.");
@@ -75,6 +86,7 @@ export default function ClientsPage() {
       if (requestError.response?.status === 403) {
         setSubmitError(null);
       } else if (requestError.response?.status === 422) {
+        setFieldErrors(requestError.response.data?.errors || {});
         setSubmitError("Verifique os dados informados e tente novamente.");
       } else {
         setSubmitError(
@@ -213,6 +225,10 @@ export default function ClientsPage() {
       {successMessage && (
         <div className="clients-feedback clients-feedback-success" role="status">
           {successMessage}
+          {createdClient && <div className="client-follow-up-actions">
+            <Link className="btn btn-primary" to={`/pets?client_id=${createdClient.id}`}>Cadastrar o primeiro pet</Link>
+            <Link className="btn btn-secondary" to={`/clients/${createdClient.id}`}>Abrir ficha do cliente</Link>
+          </div>}
         </div>
       )}
 
@@ -223,6 +239,7 @@ export default function ClientsPage() {
           onSubmit={handleSubmitClient}
           onCancel={handleCancelForm}
           submitting={submitting}
+          fieldErrors={fieldErrors}
         />
       )}
 
@@ -249,7 +266,7 @@ export default function ClientsPage() {
             type="search"
             placeholder="Buscar por nome, e-mail ou telefone..."
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }}
           />
         </div>
 
@@ -287,9 +304,9 @@ export default function ClientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredClients.map((client) => (
+                {clientPage.items.map((client) => (
                   <tr key={client.id}>
-                    <td>{client.name}</td>
+                    <td><Link to={`/clients/${client.id}`}>{client.name}</Link></td>
                     <td>{client.email || "Não informado"}</td>
                     <td>{client.phone || "Não informado"}</td>
                     <td>{client.address || "Não informado"}</td>
@@ -320,6 +337,14 @@ export default function ClientsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {!loading && !error && filteredClients.length > DEFAULT_PAGE_SIZE && (
+          <nav className="clients-pagination" aria-label="Paginação de clientes">
+            <span>Mostrando {clientPage.firstItem}–{clientPage.lastItem} de {clientPage.total}</span>
+            <button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={clientPage.page === 1}>Anterior</button>
+            <span>Página {clientPage.page} de {clientPage.pageCount}</span>
+            <button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.min(clientPage.pageCount, current + 1))} disabled={clientPage.page === clientPage.pageCount}>Próxima</button>
+          </nav>
         )}
       </section>
     </section>
