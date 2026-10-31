@@ -17,6 +17,16 @@ export function getClinicDate(now = new Date()) {
   return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 }
 
+export function getClinicDateTime(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: CLINIC_TIME_ZONE,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${values.year}-${values.month}-${values.day} ${values.hour}:${values.minute}:${values.second}`;
+}
+
 export function hasClinicDateChanged(previousDate, now = new Date()) {
   return getClinicDate(now) !== previousDate;
 }

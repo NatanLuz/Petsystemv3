@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../features/auth/AuthContext';
 import { listAppointments } from '../features/appointments/appointmentService';
 import { listClients } from '../features/clients/clientService';
 import { listPets } from '../features/pets/petService';
+import { getDashboardMetrics } from './dashboardService';
 import {
   countAppointmentsForClinicDate,
   countRecords,
   getClinicDate,
+  getClinicDateTime,
   hasClinicDateChanged,
   loadDashboardResource,
 } from './dashboardMetrics';
@@ -43,7 +47,7 @@ function useClinicDate() {
   return clinicDate;
 }
 
-function MetricCard({ label, tone, helper, load, loadKey = 0 }) {
+function MetricCard({ label, tone, helper, load, loadKey = 0, onClick }) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState({ loading: true, error: false, value: null });
 
@@ -64,8 +68,8 @@ function MetricCard({ label, tone, helper, load, loadKey = 0 }) {
     };
   }, [attempt, load, loadKey]);
 
-  return (
-    <article className={`metric-card metric-card-${tone}`}>
+  const content = (
+    <>
       <span className="metric-label">{label}</span>
       {state.loading ? (
         <strong className="metric-value" role="status">…</strong>
@@ -77,10 +81,46 @@ function MetricCard({ label, tone, helper, load, loadKey = 0 }) {
           </button>
         </div>
       ) : (
-        <strong className="metric-value">{state.value}</strong>
+        <strong className="metric-value">{state.value?.display ?? state.value}</strong>
       )}
-      {!state.error && <span className="metric-helper">{helper}</span>}
-    </article>
+      {!state.error && <span className="metric-helper">{state.value?.helper ?? helper}</span>}
+    </>
+  );
+  const className = `metric-card metric-card-${tone}${onClick ? ' metric-card-interactive' : ''}`;
+  return onClick && !state.error
+    ? <button type="button" className={className} onClick={onClick}>{content}</button>
+    : <article className={className}>{content}</article>;
+}
+
+function TodayAppointments({ appointments, loading, error, clinicDate, clinicDateTime }) {
+  const todays = useMemo(() => (Array.isArray(appointments) ? appointments : [])
+    .filter((appointment) => appointment?.scheduled_at?.slice(0, 10) === clinicDate
+      && appointment.scheduled_at > clinicDateTime
+      && ['scheduled', 'confirmed'].includes(appointment.status))
+    .sort((a, b) => String(a.scheduled_at).localeCompare(String(b.scheduled_at))),
+  [appointments, clinicDate]);
+
+  return (
+    <section className="dashboard-panel" aria-labelledby="today-appointments-title">
+      <div className="dashboard-panel-header">
+        <h2 id="today-appointments-title">Próximos atendimentos de hoje</h2>
+        <span>{clinicDate}</span>
+      </div>
+      {loading ? <p className="clients-state" role="status">Carregando agenda...</p>
+        : error ? <p className="clients-state clients-state-error" role="alert">Não foi possível carregar os atendimentos de hoje.</p>
+          : todays.length === 0 ? <p className="clients-state">Não há atendimentos agendados para hoje.</p>
+            : <div className="clients-table-wrapper" role="region" aria-label="Próximos atendimentos de hoje" tabIndex={0}>
+              <table className="clients-table"><thead><tr><th>Horário</th><th>Pet</th><th>Tutor</th><th>Serviço</th><th>Status</th></tr></thead>
+                <tbody>{todays.map((appointment) => <tr key={appointment.id}>
+                  <td>{String(appointment.scheduled_at).slice(11, 16)}</td>
+                  <td>{appointment.pet?.name || 'Pet indisponível'}</td>
+                  <td>{appointment.pet?.client?.name || 'Tutor indisponível'}</td>
+                  <td>{appointment.service?.name || 'Serviço indisponível'}</td>
+                  <td>{appointment.status === 'confirmed' ? 'Confirmado' : 'Agendado'}</td>
+                </tr>)}</tbody>
+              </table>
+            </div>}
+    </section>
   );
 }
 
@@ -99,8 +139,35 @@ const loadAppointmentsToday = async (clinicDate) => {
   return countAppointmentsForClinicDate(appointments, clinicDate);
 };
 
+const loadRevenue = async (clinicDate) => {
+  const metrics = await loadDashboardResource('dashboard-finance', getDashboardMetrics);
+  const amount = Number(metrics.revenue);
+  const display = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: metrics.currency || 'BRL' }).format(Number.isFinite(amount) ? amount : 0);
+  const period = `Concluídos · ${metrics.period.from} a ${metrics.period.through} · ${metrics.time_zone}`;
+  return { display, helper: period, clinicDate };
+};
+
 export default function HomePage() {
   const clinicDate = useClinicDate();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [clinicDateTime, setClinicDateTime] = useState(() => getClinicDateTime());
+  const [agenda, setAgenda] = useState({ loading: true, error: false, appointments: [] });
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setClinicDateTime(getClinicDateTime()), 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    loadDashboardResource('appointments', listAppointments).then((appointments) => {
+      if (active) setAgenda({ loading: false, error: false, appointments });
+    }).catch(() => {
+      if (active) setAgenda({ loading: false, error: true, appointments: [] });
+    });
+    return () => { active = false; };
+  }, [clinicDate]);
 
   return (
     <section className="dashboard-page">
@@ -111,10 +178,12 @@ export default function HomePage() {
       </header>
 
       <div className="metrics-grid">
-        <MetricCard label="Total de Clientes" tone="blue" helper="Clientes cadastrados" load={loadClients} />
-        <MetricCard label="Pets Cadastrados" tone="green" helper="Pets cadastrados" load={loadPets} />
-        <MetricCard label="Agendamentos de Hoje" tone="yellow" helper="Agendados e confirmados · horário local da clínica" load={loadAppointmentsToday} loadKey={clinicDate} />
+        <MetricCard label="Total de Clientes" tone="blue" helper="Clientes cadastrados" load={loadClients} onClick={() => navigate('/clients')} />
+        <MetricCard label="Pets Cadastrados" tone="green" helper="Pets cadastrados" load={loadPets} onClick={() => navigate('/pets')} />
+        <MetricCard label="Agendamentos de Hoje" tone="yellow" helper="Agendados e confirmados · horário local da clínica" load={loadAppointmentsToday} loadKey={clinicDate} onClick={() => navigate(`/appointments?date=${clinicDate}`)} />
+        {(user?.role === 'admin' || user?.role === 'receptionist') && <MetricCard label="Faturamento no mês" tone="cyan" helper="Atendimentos concluídos" load={loadRevenue} loadKey={clinicDate} onClick={() => navigate('/attendances?status=completed')} />}
       </div>
+      <TodayAppointments appointments={agenda.appointments} loading={agenda.loading} error={agenda.error} clinicDate={clinicDate} clinicDateTime={clinicDateTime} />
     </section>
   );
 }
