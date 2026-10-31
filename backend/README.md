@@ -2,7 +2,7 @@
 
 API REST desenvolvida em PHP 8.2+ e Laravel 12. O backend usa Laravel Sanctum para autenticação de sessão da SPA, MySQL para persistência e gates aplicados às rotas para autorizar os perfis `admin`, `receptionist` e `veterinarian`. Usuários inativos não podem autenticar nem acessar recursos protegidos.
 
-Os recursos de API existentes são clientes, pets, serviços e agendamentos. A configuração local do CORS, Sanctum, sessão, banco, primeiro usuário e testes seguros está no [guia de instalação](../docs/setup.md).
+Os recursos de API incluem clientes, pets, serviços, agendamentos, atendimentos e métricas do Dashboard. As permissões e validações são aplicadas na API. A configuração local do CORS, Sanctum, sessão, MariaDB isolado, primeiro usuário, dados fictícios e testes seguros está no [guia de instalação](../docs/setup.md).
 
 ## Scripts Composer importantes
 

@@ -7,7 +7,7 @@ Este guia configura uma instalação de desenvolvimento no Windows usando PowerS
 - Git.
 - PHP 8.2 ou superior, com `pdo_mysql` habilitada.
 - Composer 2.
-- MySQL 8 ou compatível, iniciado localmente; MySQL Workbench é opcional.
+- MariaDB compatível, iniciado localmente; MySQL Workbench é opcional.
 - Node.js 18 ou superior e npm.
 
 Confirme as ferramentas em um PowerShell:
@@ -16,11 +16,19 @@ Confirme as ferramentas em um PowerShell:
 php -v
 composer --version
 node --version
-npm --version
+npm.cmd --version
 mysql --version
 ```
 
-## 1. Baixar o projeto e criar um banco local vazio
+## 1. Banco local de demonstração
+
+Para a cópia de demonstração no Windows, a instância MariaDB é isolada em `C:\PetSystemV3-db`, usa a configuração `C:\PetSystemV3-db\my.ini`, os dados em `C:\PetSystemV3-db\data` e a porta `3307`. No `.env` do backend, use `DB_HOST=127.0.0.1`, `DB_PORT=3307` e `DB_DATABASE=petsystem_v3`. Não inicialize nem aponte o projeto para `C:\xampp\mysql\data`.
+
+Antes de iniciar uma instância, confira a configuração e o processo proprietário da porta `3307`. Inicie o MariaDB somente com `C:\PetSystemV3-db\my.ini`; não inicie nem repare outra instalação local.
+
+Para uma instalação de desenvolvimento nova, siga os passos abaixo para criar um schema exclusivo. Não reutilize um banco com dados existentes sem revisar o destino e fazer backup.
+
+## 2. Criar um banco local vazio
 
 Na raiz do clone, prepare um schema exclusivo de desenvolvimento pelo MySQL Workbench ou pela CLI do MySQL. A CLI pedirá a senha do usuário administrativo do MySQL:
 
@@ -36,7 +44,7 @@ CREATE DATABASE petsystem_v3 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 Crie também um usuário MySQL local dedicado chamado `petsystem_dev`, restrito ao host `127.0.0.1`, concedendo privilégios somente ao schema `petsystem_v3`. No Workbench, informe uma senha forte e única no campo de senha; não a coloque em comandos salvos, no README, no histórico do Git ou em capturas de tela. Se já existir um schema com esse nome, não o reutilize sem verificar seu conteúdo e fazer backup.
 
-## 2. Configurar e iniciar o backend
+## 3. Configurar e iniciar o backend
 
 Em um PowerShell na raiz do repositório:
 
@@ -46,7 +54,7 @@ composer install
 Copy-Item .env.example .env
 ```
 
-Edite `backend/.env` localmente. Configure `DB_DATABASE=petsystem_v3`, `DB_USERNAME=petsystem_dev` e a senha que criou. Mantenha `APP_DEBUG=true` somente no ambiente local. Não compartilhe nem versiona esse arquivo.
+Edite `backend/.env` localmente. Configure `DB_HOST=127.0.0.1`, `DB_PORT=3307`, `DB_DATABASE=petsystem_v3`, `DB_USERNAME=petsystem_dev` e a senha local. Mantenha `APP_DEBUG=true` somente no ambiente local. Não compartilhe nem versione esse arquivo.
 
 O template já configura os hosts locais usados pela SPA:
 
@@ -64,7 +72,17 @@ php artisan key:generate
 php artisan migrate
 ```
 
-`php artisan migrate` altera o schema e grava o histórico de migrations no banco selecionado. Não use `--force` como opção genérica de desenvolvimento. O `DatabaseSeeder` não cria usuários nem dados de demonstração; `php artisan db:seed` não provisiona um login.
+`php artisan migrate` altera o schema e grava o histórico de migrations no banco selecionado. Não use `--force` como opção genérica de desenvolvimento. Para este projeto, revise cada migration e confirme o destino em `.env` antes de aplicá-la; as migrations novas são aditivas. Não use `migrate:fresh` nem `migrate:reset`. O `DatabaseSeeder` não cria usuários nem dados de demonstração e não provisiona um login.
+
+### Dados fictícios opcionais
+
+Depois de confirmar o schema alvo e aplicar as migrations necessárias, os dados fictícios podem ser adicionados explicitamente. O seeder é repetível e não cria usuários nem senhas:
+
+```powershell
+php artisan db:seed --class=DemoDataSeeder
+```
+
+Ele cria dois clientes, dois pets, dois serviços e dois agendamentos para o dia seguinte. Os e-mails usam o domínio reservado `.invalid`. Não execute esse comando em um banco de cliente.
 
 ### Criar o primeiro usuário ativo local
 
@@ -104,25 +122,25 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 A API fica em `http://127.0.0.1:8000/api`. Os endpoints de verificação são `/api/health/live` e `/api/health/ready`.
 
-## 3. Instalar e iniciar o frontend
+## 4. Instalar e iniciar o frontend
 
 Abra outro PowerShell na raiz do clone:
 
 ```powershell
 Set-Location frontend
-npm ci
+npm.cmd ci
 Copy-Item .env.example .env
 ```
 
 O valor de `VITE_API_URL` deve apontar para `http://127.0.0.1:8000/api`. Inicie o Vite:
 
 ```powershell
-npm run dev
+npm.cmd run dev
 ```
 
 Abra a URL informada pelo Vite, normalmente `http://localhost:5173`. A autenticação SPA usa cookie de sessão, fluxo CSRF e requisições com credenciais; os hosts locais do template precisam corresponder ao endereço aberto no navegador.
 
-## 4. Testes sem atingir o MySQL local
+## 5. Testes sem atingir o MariaDB local
 
 Os testes backend usam `RefreshDatabase`. O `phpunit.xml` declara SQLite em memória, mas variáveis herdadas do processo podem prevalecer. Execute os testes em um PowerShell dedicado, a partir de `backend`, definindo explicitamente a conexão. O caminho de configuração Laravel abaixo é único e inexistente para não usar um eventual cache local:
 
@@ -154,7 +172,7 @@ node --test src/features/appointments/appointmentDateTime.test.js
 
 Os arquivos de teste também cobrem busca de clientes, pets, serviços e agendamentos. O build de produção grava arquivos em `frontend/dist` e é independente da suíte de testes.
 
-## 5. Perfis e permissões
+## 6. Perfis e permissões
 
 As permissões da API são aplicadas no backend a cada operação. A interface pode ocultar ações que o perfil não pode executar, mas essa apresentação visual não substitui a autorização do backend.
 
