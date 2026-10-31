@@ -24,7 +24,7 @@ Consulte [`docs/setup.md`](docs/setup.md) para requisitos, criação do banco lo
 
 O repositório contém testes de API, autenticação, autorização por perfil, permissões do frontend e funções de métricas do Dashboard. Os comandos e o isolamento do banco estão documentados em [`docs/setup.md`](docs/setup.md). Não há aqui uma declaração de que os testes passaram no estado atual do repositório.
 
-## Estado do projeto
+## Estado do projeto atualmente (sempre atualizado)
 
 As áreas listadas acima estão implementadas no código. O projeto continua em validação e não inclui neste repositório um processo de implantação de produção. Não há sistema de pagamentos ou métrica de receita confirmada.
 
