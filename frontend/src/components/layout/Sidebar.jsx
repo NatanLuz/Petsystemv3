@@ -74,6 +74,7 @@ export default function Sidebar() {
             <button className="btn btn-secondary sidebar-logout" onClick={handleLogout} disabled={Boolean(operation)}>
               {operation === 'logout' ? 'Saindo...' : 'Sair'}
             </button>
+          </>
         ) : status === 'checking' || operation === 'checking' ? (
           <span className="sidebar-link" role="status">Verificando sessão...</span>
         ) : status === 'error' ? (
