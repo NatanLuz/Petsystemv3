@@ -2,6 +2,7 @@ import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "../useDebouncedValue";
+import { formatCurrency } from "../../shared/formatters.js";
 import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
 import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ServiceForm from "./ServiceForm";
@@ -21,17 +22,8 @@ const fieldLabels = {
   active: "Status",
 };
 
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
 function formatPrice(price) {
-  const numericPrice = Number(price);
-
-  return Number.isFinite(numericPrice)
-    ? currencyFormatter.format(numericPrice)
-    : "Não informado";
+  return formatCurrency(price);
 }
 
 export default function ServicesPage() {

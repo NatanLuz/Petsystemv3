@@ -5,6 +5,7 @@ import { listAppointments } from '../features/appointments/appointmentService';
 import { listClients } from '../features/clients/clientService';
 import { listPets } from '../features/pets/petService';
 import { getDashboardMetrics } from './dashboardService';
+import { formatCurrency, formatWallDateTime } from '../shared/formatters.js';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../components/feedback/Feedback';
 import {
   countAppointmentsForClinicDate,
@@ -113,7 +114,7 @@ function TodayAppointments({ appointments, loading, error, clinicDate, clinicDat
             : <div className="clients-table-wrapper" role="region" aria-label="Próximos atendimentos de hoje" tabIndex={0}>
               <table className="clients-table"><thead><tr><th>Horário</th><th>Pet</th><th>Tutor</th><th>Serviço</th><th>Status</th></tr></thead>
                 <tbody>{todays.map((appointment) => <tr key={appointment.id}>
-                  <td>{String(appointment.scheduled_at).slice(11, 16)}</td>
+                  <td>{formatWallDateTime(appointment.scheduled_at).slice(-5)}</td>
                   <td>{appointment.pet?.name || 'Pet indisponível'}</td>
                   <td>{appointment.pet?.client?.name || 'Tutor indisponível'}</td>
                   <td>{appointment.service?.name || 'Serviço indisponível'}</td>
@@ -143,7 +144,7 @@ const loadAppointmentsToday = async (clinicDate) => {
 const loadRevenue = async (clinicDate) => {
   const metrics = await loadDashboardResource('dashboard-finance', getDashboardMetrics);
   const amount = Number(metrics.revenue);
-  const display = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: metrics.currency || 'BRL' }).format(Number.isFinite(amount) ? amount : 0);
+  const display = Number.isFinite(amount) ? formatCurrency(amount, metrics.currency || 'BRL') : formatCurrency(0, metrics.currency || 'BRL');
   return { display, helper: '', clinicDate };
 };
 

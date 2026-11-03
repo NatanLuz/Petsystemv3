@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { listClients } from "../clients/clientService";
+import { formatPhone } from "../clients/contactFormat";
 
 function getInitialFormData(pet, defaultClientId = "") {
   return {
@@ -125,7 +126,7 @@ export default function PetForm({ onSubmit, onCancel, submitting = false, disabl
             <ul id="pet-client-options" className="client-autocomplete-options" role="listbox">
               {filteredClients.slice(0, 8).map((client) => <li key={client.id} role="option" aria-selected={Number(formData.client_id) === Number(client.id)}>
                 <button type="button" onClick={() => { setFormData((current) => ({ ...current, client_id: client.id })); setClientSearch(client.name); setShowClientSuggestions(false); }}>
-                  {client.name}{client.phone ? ` · ${client.phone}` : ""}
+                  {client.name}{client.phone ? ` · ${formatPhone(client.phone)}` : ""}
                 </button>
               </li>)}
             </ul>

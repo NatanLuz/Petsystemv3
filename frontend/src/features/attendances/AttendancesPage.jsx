@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDebouncedValue } from '../useDebouncedValue';
+import { formatCurrency, formatWallDateTime } from '../../shared/formatters.js';
 import { getPageSlice, DEFAULT_PAGE_SIZE } from '../listPagination';
 import { useAuth } from '../auth/AuthContext';
 import { can } from '../auth/permissions';
@@ -12,13 +13,8 @@ import { EmptyState, ErrorState, LoadingSkeleton, Toast } from '../../components
 import { createAttendance, listAttendances, updateAttendance } from './attendanceService';
 
 const paymentMethods = ['Dinheiro', 'Pix', 'Cartão de crédito', 'Cartão de débito', 'Transferência'];
-const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const dateFormat = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-
 function formatDate(value) {
-  if (!value) return 'Não informado';
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? 'Não informado' : dateFormat.format(date);
+  return formatWallDateTime(value);
 }
 
 export default function AttendancesPage() {
@@ -186,7 +182,7 @@ export default function AttendancesPage() {
           {!hasAppointment && <>
             <label className="client-field"><span>Cliente *</span><select required value={form.client_id} onChange={(event) => setForm((current) => ({ ...current, client_id: event.target.value, pet_id: '' }))}><option value="">Selecione o cliente</option>{clients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>{errorFor('client_id') && <span className="client-field-error" role="alert">{errorFor('client_id')}</span>}</label>
             <label className="client-field"><span>Pet *</span><select required value={form.pet_id} onChange={(event) => setForm((current) => ({ ...current, pet_id: event.target.value }))} disabled={!form.client_id}><option value="">Selecione o pet</option>{availablePets.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.species}</option>)}</select>{errorFor('pet_id') && <span className="client-field-error" role="alert">{errorFor('pet_id')}</span>}</label>
-            <label className="client-field"><span>Serviços realizados *</span><select multiple required value={form.service_ids} onChange={(event) => setForm((current) => ({ ...current, service_ids: [...event.target.selectedOptions].map((option) => option.value) }))}>{services.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}{canViewFinance ? ` · ${currency.format(Number(item.price))}` : ''}</option>)}</select>{errorFor('service_ids') && <span className="client-field-error" role="alert">{errorFor('service_ids')}</span>}</label>
+            <label className="client-field"><span>Serviços realizados *</span><select multiple required value={form.service_ids} onChange={(event) => setForm((current) => ({ ...current, service_ids: [...event.target.selectedOptions].map((option) => option.value) }))}>{services.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}{canViewFinance ? ` · ${formatCurrency(item.price)}` : ''}</option>)}</select>{errorFor('service_ids') && <span className="client-field-error" role="alert">{errorFor('service_ids')}</span>}</label>
           </>}
         </div>}
         {(isVet || isAdmin) && <div className="client-form-grid">
@@ -208,7 +204,7 @@ export default function AttendancesPage() {
         {!loading && !error && attendances.length === 0 && <EmptyState message="Nenhum atendimento registrado." actionLabel={canCreate ? 'Novo atendimento' : undefined} onAction={canCreate ? startNew : undefined} />}
         {!loading && !error && attendances.length > 0 && visibleAttendances.length === 0 && <EmptyState message="Nenhum atendimento encontrado." />}
         {!loading && !error && visibleAttendances.length > 0 && <div className="clients-table-wrapper" role="region" aria-label="Tabela de atendimentos" tabIndex={0}><table className="clients-table"><thead><tr><th>Início</th><th>Cliente</th><th>Pet</th><th>Serviços</th><th>Status</th>{canViewFinance && <th>Valor cobrado</th>}<th>Ação</th></tr></thead>
-          <tbody>{attendancePage.items.map((item) => <tr key={item.id}><td>{formatDate(item.started_at)}</td><td>{item.client?.name}</td><td>{item.pet?.name}</td><td>{item.services?.map((service) => service.name).join(', ')}</td><td>{item.status === 'completed' ? 'Concluído' : 'Em atendimento'}</td>{canViewFinance && <td>{item.amount_charged == null ? 'Não informado' : currency.format(Number(item.amount_charged))}</td>}<td>{canUpdate && (item.status !== 'completed' || isAdmin || isReception) && <button type="button" className="clients-action-button clients-action-edit" onClick={() => editAttendance(item)}>Atualizar</button>}</td></tr>)}</tbody>
+          <tbody>{attendancePage.items.map((item) => <tr key={item.id}><td>{formatDate(item.started_at)}</td><td>{item.client?.name}</td><td>{item.pet?.name}</td><td>{item.services?.map((service) => service.name).join(', ')}</td><td>{item.status === 'completed' ? 'Concluído' : 'Em atendimento'}</td>{canViewFinance && <td>{formatCurrency(item.amount_charged)}</td>}<td>{canUpdate && (item.status !== 'completed' || isAdmin || isReception) && <button type="button" className="clients-action-button clients-action-edit" onClick={() => editAttendance(item)}>Atualizar</button>}</td></tr>)}</tbody>
         </table></div>}
         {!loading && !error && visibleAttendances.length > DEFAULT_PAGE_SIZE && <nav className="clients-pagination" aria-label="Paginação de atendimentos"><span>Mostrando {attendancePage.firstItem}–{attendancePage.lastItem} de {attendancePage.total}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={attendancePage.page === 1}>Anterior</button><span>Página {attendancePage.page} de {attendancePage.pageCount}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.min(attendancePage.pageCount, current + 1))} disabled={attendancePage.page === attendancePage.pageCount}>Próxima</button></nav>}
       </section>

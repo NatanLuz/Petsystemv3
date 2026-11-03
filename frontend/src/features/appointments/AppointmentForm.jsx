@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import { getClinicDateTime } from "../../pages/dashboardMetrics";
+import { formatCurrency } from "../../shared/formatters.js";
 import {
   formatAppointmentDate,
   toOperationalInput,
@@ -29,16 +30,8 @@ const appointmentTransitions = {
   completed: [], cancelled: [], no_show: [],
 };
 
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
 export function formatAppointmentPrice(value) {
-  const price = Number(value);
-  return value !== null && value !== undefined && Number.isFinite(price)
-    ? currencyFormatter.format(price)
-    : "Não informado";
+  return formatCurrency(value);
 }
 
 function getInitialFormData(appointment, defaultClientId = "", defaultPetId = "") {

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { formatAppointmentDate, appointmentStatuses } from '../appointments/AppointmentForm';
 import { getClientById } from './clientService';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../../components/feedback/Feedback';
+import { formatPhone } from './contactFormat.js';
 
 export default function ClientDetailPage() {
   const { id } = useParams();
@@ -33,7 +34,7 @@ export default function ClientDetailPage() {
   return (
     <section className="clients-page">
       <header className="clients-header">
-        <div><h1>{client.name}</h1><p>{client.phone}{client.email ? ` · ${client.email}` : ''}</p></div>
+        <div><h1>{client.name}</h1><p>{client.phone ? formatPhone(client.phone) : 'Telefone não informado'}{client.email ? ` · ${client.email}` : ''}</p></div>
         <div className="clients-table-actions">
           <Link className="btn btn-primary" to={`/pets?client_id=${client.id}`}>Novo pet</Link>
           <Link className="btn btn-secondary" to={`/appointments?client_id=${client.id}`}>Novo agendamento</Link>

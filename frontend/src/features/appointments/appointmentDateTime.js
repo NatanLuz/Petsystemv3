@@ -1,3 +1,5 @@
+import { formatWallDateTime } from '../../shared/formatters.js';
+
 export function toOperationalInput(value) {
   const match = String(value ?? "").match(
     /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?/,
@@ -10,8 +12,5 @@ export function toOperationalPayload(value) {
 }
 
 export function formatAppointmentDate(value) {
-  const operational = toOperationalInput(value);
-  if (!operational) return "Data indisponível";
-  const [date, time] = operational.split("T");
-  return `${date.split("-").reverse().join("/")} ${time.slice(0, 5)}`;
+  return formatWallDateTime(value);
 }

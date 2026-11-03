@@ -3,6 +3,7 @@ import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDebouncedValue } from "../useDebouncedValue";
+import { formatPhone } from "./contactFormat";
 import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
 import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ClientForm from "./ClientForm";
@@ -298,7 +299,7 @@ export default function ClientsPage() {
                   <tr key={client.id}>
                     <td><Link to={`/clients/${client.id}`}>{client.name}</Link></td>
                     <td>{client.email || "Não informado"}</td>
-                    <td>{client.phone || "Não informado"}</td>
+                    <td>{client.phone ? formatPhone(client.phone) : "Não informado"}</td>
                     <td>{client.address || "Não informado"}</td>
                     <td>
                       <div className="clients-table-actions">

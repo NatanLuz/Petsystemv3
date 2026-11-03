@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { appointmentStatuses, formatAppointmentDate } from '../appointments/AppointmentForm';
 import { getPetById } from './petService';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../../components/feedback/Feedback';
+import { formatDate } from '../../shared/formatters.js';
 
 export default function PetDetailPage() {
   const { id } = useParams();
@@ -38,7 +39,7 @@ export default function PetDetailPage() {
       </header>
       <section className="clients-panel client-pet-facts">
         <h2 className="client-detail-heading">Ficha do pet</h2>
-        <dl><div><dt>Sexo</dt><dd>{pet.sex || 'Não informado'}</dd></div><div><dt>Nascimento</dt><dd>{pet.birth_date || 'Não informado'}</dd></div>
+        <dl><div><dt>Sexo</dt><dd>{pet.sex || 'Não informado'}</dd></div><div><dt>Nascimento</dt><dd>{formatDate(pet.birth_date)}</dd></div>
           <div><dt>Peso</dt><dd>{pet.weight ? `${pet.weight} kg` : 'Não informado'}</dd></div><div><dt>Porte</dt><dd>{pet.size || 'Não informado'}</dd></div>
           <div><dt>Cor</dt><dd>{pet.color || 'Não informada'}</dd></div></dl>
         {pet.notes && <p><strong>Observações:</strong> {pet.notes}</p>}
