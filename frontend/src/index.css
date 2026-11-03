@@ -1082,6 +1082,75 @@ button.metric-card:focus-visible {
 .sidebar-identity span { color: rgba(255, 255, 255, 0.75); font-size: 0.8rem; }
 .sidebar-logout { width: 100%; }
 
+.feedback-toast,
+.feedback-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+}
+
+.feedback-toast-success { background: #ecfdf3; border-color: #a7f3d0; color: #047857; }
+.feedback-toast-error,
+.feedback-error { background: #fef2f2; border-color: #fecaca; color: var(--accent-danger); }
+
+.feedback-skeleton {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.feedback-skeleton span {
+  height: 1.15rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, #edf2f8 25%, #f7f9fc 50%, #edf2f8 75%);
+  background-size: 200% 100%;
+  animation: feedback-shimmer 1.3s ease-in-out infinite;
+}
+
+.feedback-skeleton span:nth-child(2) { width: 86%; }
+.feedback-skeleton span:nth-child(3) { width: 68%; }
+
+@keyframes feedback-shimmer {
+  to { background-position: -200% 0; }
+}
+
+.feedback-empty {
+  display: flex;
+  min-height: 140px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 1.5rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.feedback-empty strong { color: var(--text-main); }
+
+.confirm-dialog {
+  width: min(92vw, 460px);
+  margin: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-main);
+  box-shadow: 0 24px 64px rgba(16, 24, 40, 0.24);
+}
+
+.confirm-dialog::backdrop { background: rgba(15, 23, 42, 0.48); }
+.confirm-dialog h2 { margin-bottom: 0.5rem; font-size: 1.15rem; }
+.confirm-dialog p { color: var(--text-muted); }
+.confirm-dialog-actions { display: flex; justify-content: flex-end; gap: 0.65rem; margin-top: 1.25rem; }
+.btn-danger { background: #b42318; color: #ffffff; }
+.btn-danger:hover { background: #912018; }
+
 @media (max-width: 760px) {
   .sidebar-brand { justify-content: space-between; }
   .sidebar-toggle { display: inline-flex; }

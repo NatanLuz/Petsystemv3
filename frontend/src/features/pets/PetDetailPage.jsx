@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { appointmentStatuses, formatAppointmentDate } from '../appointments/AppointmentForm';
 import { getPetById } from './petService';
+import { EmptyState, ErrorState, LoadingSkeleton } from '../../components/feedback/Feedback';
 
 export default function PetDetailPage() {
   const { id } = useParams();
   const [state, setState] = useState({ loading: true, error: false, pet: null });
+  const [loadRevision, setLoadRevision] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -15,7 +17,7 @@ export default function PetDetailPage() {
       if (active) setState({ loading: false, error: true, pet: null });
     });
     return () => { active = false; };
-  }, [id]);
+  }, [id, loadRevision]);
 
   const history = useMemo(() => [
     ...(state.pet?.appointments ?? []).map((item) => ({ ...item, kind: 'Agendamento', history_date: item.scheduled_at, history_services: [item.service?.name].filter(Boolean) })),
@@ -23,8 +25,8 @@ export default function PetDetailPage() {
   ].sort((a, b) => String(b.history_date).localeCompare(String(a.history_date)))
     .slice(0, 10), [state.pet]);
 
-  if (state.loading) return <section className="clients-page"><p className="clients-state" role="status">Carregando ficha do pet...</p></section>;
-  if (state.error || !state.pet) return <section className="clients-page"><p className="clients-state clients-state-error" role="alert">Não foi possível carregar a ficha do pet.</p><Link to="/pets">Voltar para pets</Link></section>;
+  if (state.loading) return <section className="clients-page"><LoadingSkeleton label="Carregando ficha do pet..." /></section>;
+  if (state.error || !state.pet) return <section className="clients-page"><ErrorState message="Não foi possível carregar a ficha do pet." onRetry={() => { setState((current) => ({ ...current, loading: true, error: false })); setLoadRevision((value) => value + 1); }} /><Link to="/pets">Voltar para pets</Link></section>;
 
   const pet = state.pet;
   return (
@@ -45,7 +47,7 @@ export default function PetDetailPage() {
       </section>
       <section className="clients-panel">
         <h2 className="client-detail-heading">Histórico de agendamentos e atendimentos</h2>
-        {history.length === 0 ? <p className="clients-state">Ainda não há histórico para este pet.</p> : (
+        {history.length === 0 ? <EmptyState message="Ainda não há histórico para este pet." /> : (
           <div className="clients-table-wrapper" role="region" aria-label="Histórico do pet" tabIndex={0}>
             <table className="clients-table"><thead><tr><th>Tipo</th><th>Data</th><th>Serviços</th><th>Status</th></tr></thead>
               <tbody>{history.map((item) => <tr key={`${item.kind}-${item.id}`}><td>{item.kind}</td><td>{formatAppointmentDate(item.history_date)}</td><td>{item.history_services.join(', ') || 'Serviço indisponível'}</td><td>{appointmentStatuses[item.status]?.label ?? (item.status === 'completed' ? 'Concluído' : item.status === 'in_progress' ? 'Em atendimento' : item.status)}</td></tr>)}</tbody>

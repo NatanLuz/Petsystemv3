@@ -5,6 +5,7 @@ import { listAppointments } from '../features/appointments/appointmentService';
 import { listClients } from '../features/clients/clientService';
 import { listPets } from '../features/pets/petService';
 import { getDashboardMetrics } from './dashboardService';
+import { EmptyState, ErrorState, LoadingSkeleton } from '../components/feedback/Feedback';
 import {
   countAppointmentsForClinicDate,
   countRecords,
@@ -92,7 +93,7 @@ function MetricCard({ label, tone, helper, load, loadKey = 0, onClick }) {
     : <article className={className}>{content}</article>;
 }
 
-function TodayAppointments({ appointments, loading, error, clinicDate, clinicDateTime }) {
+function TodayAppointments({ appointments, loading, error, clinicDate, clinicDateTime, onRetry }) {
   const todays = useMemo(() => (Array.isArray(appointments) ? appointments : [])
     .filter((appointment) => appointment?.scheduled_at?.slice(0, 10) === clinicDate
       && appointment.scheduled_at > clinicDateTime
@@ -106,9 +107,9 @@ function TodayAppointments({ appointments, loading, error, clinicDate, clinicDat
         <h2 id="today-appointments-title">Próximos atendimentos de hoje</h2>
         <span>{clinicDate}</span>
       </div>
-      {loading ? <p className="clients-state" role="status">Carregando agenda...</p>
-        : error ? <p className="clients-state clients-state-error" role="alert">Não foi possível carregar os atendimentos de hoje.</p>
-          : todays.length === 0 ? <p className="clients-state">Não há atendimentos agendados para hoje.</p>
+      {loading ? <LoadingSkeleton label="Carregando agenda..." />
+        : error ? <ErrorState message="Não foi possível carregar os atendimentos de hoje." onRetry={onRetry} />
+          : todays.length === 0 ? <EmptyState message="Não há atendimentos agendados para hoje." />
             : <div className="clients-table-wrapper" role="region" aria-label="Próximos atendimentos de hoje" tabIndex={0}>
               <table className="clients-table"><thead><tr><th>Horário</th><th>Pet</th><th>Tutor</th><th>Serviço</th><th>Status</th></tr></thead>
                 <tbody>{todays.map((appointment) => <tr key={appointment.id}>
@@ -152,6 +153,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const [clinicDateTime, setClinicDateTime] = useState(() => getClinicDateTime());
   const [agenda, setAgenda] = useState({ loading: true, error: false, appointments: [] });
+  const [agendaRevision, setAgendaRevision] = useState(0);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setClinicDateTime(getClinicDateTime()), 60_000);
@@ -166,7 +168,7 @@ export default function HomePage() {
       if (active) setAgenda({ loading: false, error: true, appointments: [] });
     });
     return () => { active = false; };
-  }, [clinicDate]);
+  }, [clinicDate, agendaRevision]);
 
   return (
     <section className="dashboard-page">
@@ -182,7 +184,7 @@ export default function HomePage() {
         <MetricCard label="Agendamentos de Hoje" tone="yellow" helper="Agendados e confirmados · horário local da clínica" load={loadAppointmentsToday} loadKey={clinicDate} onClick={() => navigate(`/appointments?date=${clinicDate}`)} />
         {(user?.role === 'admin' || user?.role === 'receptionist') && <MetricCard label="Faturamento no mês" tone="cyan" helper="Atendimentos concluídos" load={loadRevenue} loadKey={clinicDate} onClick={() => navigate('/attendances?status=completed')} />}
       </div>
-      <TodayAppointments appointments={agenda.appointments} loading={agenda.loading} error={agenda.error} clinicDate={clinicDate} clinicDateTime={clinicDateTime} />
+      <TodayAppointments appointments={agenda.appointments} loading={agenda.loading} error={agenda.error} clinicDate={clinicDate} clinicDateTime={clinicDateTime} onRetry={() => { setAgenda((current) => ({ ...current, loading: true, error: false })); setAgendaRevision((value) => value + 1); }} />
     </section>
   );
 }

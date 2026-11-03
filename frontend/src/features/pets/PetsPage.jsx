@@ -3,6 +3,7 @@ import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDebouncedValue } from "../useDebouncedValue";
+import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
 import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import PetForm from "./PetForm";
 import { filterPets } from "./petSearch";
@@ -16,6 +17,7 @@ const fieldLabels = {
 
 export default function PetsPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirmDialog();
   const canCreate = can(user, "pets.create");
   const canUpdate = can(user, "pets.update");
   const canDelete = can(user, "pets.delete");
@@ -34,6 +36,7 @@ export default function PetsPage() {
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loadRevision, setLoadRevision] = useState(0);
   const operationPending = useRef(false);
   const busy = submitting || deletingPetId !== null;
 
@@ -57,7 +60,7 @@ export default function PetsPage() {
     }
     loadPets();
     return () => { active = false; };
-  }, []);
+  }, [loadRevision]);
 
   function clearOperationMessages() {
     setSuccessMessage(null);
@@ -123,7 +126,7 @@ export default function PetsPage() {
   async function handleDeletePet(pet) {
     if (!canDelete) return;
     if (operationPending.current) return;
-    if (!window.confirm(`Deseja realmente excluir o pet ${pet.name}?`)) return;
+    if (!(await confirm({ title: 'Excluir pet?', message: `Deseja realmente excluir o pet ${pet.name}?` }))) return;
     operationPending.current = true;
     setDeletingPetId(pet.id);
     clearOperationMessages();
@@ -146,19 +149,20 @@ export default function PetsPage() {
 
   return (
     <section className="clients-page">
+      {dialog}
       <header className="clients-header">
         <div>
           <p>Cadastre e gerencie os pets e seus tutores no PetSystem.</p>
         </div>
         {canCreate && (<button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Pet</button>)}
       </header>
-      {successMessage && <div className="clients-feedback clients-feedback-success" role="status">{successMessage}</div>}
+      <Toast message={successMessage} />
       {isFormOpen && (editingPet ? canUpdate : canCreate) && (
           <PetForm key={formKey} initialData={editingPet} onSubmit={handleSubmitPet} fieldErrors={fieldErrors}
           onCancel={handleCancelForm} submitting={submitting} disabled={deletingPetId !== null} />
       )}
-      {submitError && <div className="clients-feedback clients-feedback-error" role="alert">{submitError}</div>}
-      {deleteError && <div className="clients-feedback clients-feedback-error" role="alert">{deleteError}</div>}
+      {submitError && <Toast message={submitError} tone="error" />}
+      {deleteError && <Toast message={deleteError} tone="error" />}
       <section className="clients-panel">
         <div className="clients-toolbar">
           <label className="clients-search-label" htmlFor="pet-search">Buscar pets</label>
@@ -166,11 +170,11 @@ export default function PetsPage() {
             placeholder="Buscar por nome, código, espécie, raça ou tutor..."
             value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }} />
         </div>
-        {loading && <div className="clients-state" role="status">Carregando pets...</div>}
-        {!loading && error && <div className="clients-state clients-state-error" role="alert">{error}</div>}
-        {!loading && !error && pets.length === 0 && <div className="clients-state">Nenhum pet cadastrado.</div>}
+        {loading && <LoadingSkeleton label="Carregando pets..." />}
+        {!loading && error && <ErrorState message={error} onRetry={() => { setLoading(true); setError(null); setLoadRevision((value) => value + 1); }} />}
+        {!loading && !error && pets.length === 0 && <EmptyState message="Nenhum pet cadastrado." actionLabel={canCreate ? 'Cadastrar pet' : undefined} onAction={canCreate ? () => openForm() : undefined} />}
         {!loading && !error && pets.length > 0 && filteredPets.length === 0 && (
-          <div className="clients-state">Nenhum pet encontrado para esta busca.</div>
+          <EmptyState message="Nenhum pet encontrado para esta busca." />
         )}
         {!loading && !error && filteredPets.length > 0 && (
           <div className="clients-table-wrapper" role="region" aria-label="Tabela de pets" tabIndex={0}>

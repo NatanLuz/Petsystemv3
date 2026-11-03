@@ -3,6 +3,7 @@ import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDebouncedValue } from "../useDebouncedValue";
+import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
 import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ClientForm from "./ClientForm";
 import { filterClients } from "./clientSearch";
@@ -15,6 +16,7 @@ import {
 
 export default function ClientsPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirmDialog();
   const canCreate = can(user, "clients.create");
   const canUpdate = can(user, "clients.update");
   const canDelete = can(user, "clients.delete");
@@ -34,6 +36,7 @@ export default function ClientsPage() {
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loadRevision, setLoadRevision] = useState(0);
 
   const filteredClients = useMemo(
     () => filterClients(clients, debouncedSearch),
@@ -139,9 +142,7 @@ export default function ClientsPage() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Deseja realmente excluir o cliente ${client.name}?`,
-    );
+    const confirmed = await confirm({ title: 'Excluir cliente?', message: `Deseja realmente excluir o cliente ${client.name}?` });
 
     if (!confirmed) {
       return;
@@ -203,10 +204,11 @@ export default function ClientsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [loadRevision]);
 
   return (
     <section className="clients-page">
+      {dialog}
       <header className="clients-header">
         <div>
           <p>Cadastre e gerencie os clientes do PetSystem.</p>
@@ -223,13 +225,13 @@ export default function ClientsPage() {
       </header>
 
       {successMessage && (
-        <div className="clients-feedback clients-feedback-success" role="status">
-          {successMessage}
+        <>
+          <Toast message={successMessage} />
           {createdClient && <div className="client-follow-up-actions">
             <Link className="btn btn-primary" to={`/pets?client_id=${createdClient.id}`}>Cadastrar o primeiro pet</Link>
             <Link className="btn btn-secondary" to={`/clients/${createdClient.id}`}>Abrir ficha do cliente</Link>
           </div>}
-        </div>
+        </>
       )}
 
       {isFormOpen && (editingClient ? canUpdate : canCreate) && (
@@ -243,17 +245,9 @@ export default function ClientsPage() {
         />
       )}
 
-      {submitError && (
-        <div className="clients-feedback clients-feedback-error" role="alert">
-          {submitError}
-        </div>
-      )}
+      {submitError && <Toast message={submitError} tone="error" />}
 
-      {deleteError && (
-        <div className="clients-feedback clients-feedback-error" role="alert">
-          {deleteError}
-        </div>
-      )}
+      {deleteError && <Toast message={deleteError} tone="error" />}
 
       <section className="clients-panel">
         <div className="clients-toolbar">
@@ -270,25 +264,21 @@ export default function ClientsPage() {
           />
         </div>
 
-        {loading && <div className="clients-state">Carregando clientes...</div>}
+        {loading && <LoadingSkeleton label="Carregando clientes..." />}
 
         {error && !loading && (
-          <div className="clients-state clients-state-error" role="alert">
-            {error}
-          </div>
+          <ErrorState message={error} onRetry={() => { setLoading(true); setError(null); setLoadRevision((value) => value + 1); }} />
         )}
 
         {!loading && !error && clients.length === 0 && (
-          <div className="clients-state">Nenhum cliente cadastrado.</div>
+          <EmptyState message="Nenhum cliente cadastrado." actionLabel={canCreate ? 'Cadastrar cliente' : undefined} onAction={canCreate ? handleNewClient : undefined} />
         )}
 
         {!loading &&
           !error &&
           clients.length > 0 &&
           filteredClients.length === 0 && (
-            <div className="clients-state">
-              Nenhum cliente encontrado para esta busca.
-            </div>
+            <EmptyState message="Nenhum cliente encontrado para esta busca." />
           )}
 
         {!loading && !error && filteredClients.length > 0 && (

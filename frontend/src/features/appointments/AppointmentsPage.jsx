@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedValue } from "../useDebouncedValue";
 import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
+import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
 import AppointmentForm, { appointmentStatuses, formatAppointmentDate, formatAppointmentPrice } from "./AppointmentForm";
 import { filterAppointments, filterAppointmentsByDate } from "./appointmentSearch";
 import { createAppointment, deleteAppointment, listAppointments, updateAppointment } from "./appointmentService";
@@ -26,6 +27,7 @@ function validationMessage(error) {
 
 export default function AppointmentsPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirmDialog();
   const canCreate = can(user, "appointments.create");
   const canUpdate = can(user, "appointments.update");
   const canDelete = can(user, "appointments.delete");
@@ -43,6 +45,7 @@ export default function AppointmentsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [optionsRevision, setOptionsRevision] = useState(0);
+  const [loadRevision, setLoadRevision] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(searchTerm);
@@ -66,7 +69,7 @@ export default function AppointmentsPage() {
       if (active) setError("Não foi possível carregar os agendamentos. Tente novamente mais tarde.");
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [loadRevision]);
 
   function clearMessages() {
     setSubmitError(null);
@@ -128,7 +131,11 @@ export default function AppointmentsPage() {
   async function handleDelete(appointment) {
     if (!canDelete) return;
     if (operationPending.current) return;
-    if (!window.confirm(`Excluir definitivamente o agendamento de ${appointment.pet?.name || "pet indisponível"} em ${formatAppointmentDate(appointment.scheduled_at)}? Esta ação não pode ser desfeita. Para apenas cancelar, edite o status para Cancelado.`)) return;
+    if (!(await confirm({
+      title: 'Excluir agendamento?',
+      message: `Excluir definitivamente o agendamento de ${appointment.pet?.name || "pet indisponível"} em ${formatAppointmentDate(appointment.scheduled_at)}? Esta ação não pode ser desfeita. Para apenas cancelar, edite o status para Cancelado.`,
+      confirmLabel: 'Excluir agendamento',
+    }))) return;
     operationPending.current = true;
     setDeletingId(appointment.id);
     clearMessages();
@@ -153,14 +160,15 @@ export default function AppointmentsPage() {
 
   return (
     <section className="clients-page">
+      {dialog}
       <header className="clients-header">
         <div><p>Cadastre e gerencie os agendamentos do PetSystem.</p></div>
         {canCreate && (<button type="button" className="btn btn-primary clients-new-button" onClick={() => openForm()} disabled={busy || loading || !!error}>+ Novo Agendamento</button>)}
       </header>
-      {successMessage && <div className="clients-feedback clients-feedback-success" role="status">{successMessage}</div>}
+      <Toast message={successMessage} />
       {isFormOpen && (editingAppointment ? canUpdate : canCreate) && <AppointmentForm key={formKey} initialData={editingAppointment} onSubmit={handleSubmit} onCancel={closeForm} submitting={submitting} disabled={deletingId !== null} optionsRevision={optionsRevision} fieldErrors={fieldErrors} />}
-      {submitError && <div className="clients-feedback clients-feedback-error" role="alert">{submitError}</div>}
-      {deleteError && <div className="clients-feedback clients-feedback-error" role="alert">{deleteError}</div>}
+      {submitError && <Toast message={submitError} tone="error" />}
+      {deleteError && <Toast message={deleteError} tone="error" />}
       <section className="clients-panel">
         <div className="clients-toolbar">
           <label className="clients-search-label" htmlFor="appointment-search">Buscar agendamentos</label>
@@ -172,10 +180,10 @@ export default function AppointmentsPage() {
             setSearchParams(next, { replace: true });
           }} />
         </div>
-        {loading && <div className="clients-state" role="status">Carregando agendamentos...</div>}
-        {!loading && error && <div className="clients-state clients-state-error" role="alert">{error}</div>}
-        {!loading && !error && appointments.length === 0 && <div className="clients-state">Nenhum agendamento cadastrado.</div>}
-        {!loading && !error && appointments.length > 0 && filteredAppointments.length === 0 && <div className="clients-state">Nenhum agendamento encontrado para esta busca.</div>}
+        {loading && <LoadingSkeleton label="Carregando agendamentos..." />}
+        {!loading && error && <ErrorState message={error} onRetry={() => { setLoading(true); setError(null); setLoadRevision((value) => value + 1); }} />}
+        {!loading && !error && appointments.length === 0 && <EmptyState message="Nenhum agendamento cadastrado." actionLabel={canCreate ? 'Novo agendamento' : undefined} onAction={canCreate ? () => openForm() : undefined} />}
+        {!loading && !error && appointments.length > 0 && filteredAppointments.length === 0 && <EmptyState message="Nenhum agendamento encontrado para esta busca." />}
         {!loading && !error && filteredAppointments.length > 0 && <div className="clients-table-wrapper" role="region" aria-label="Tabela de agendamentos" tabIndex={0}>
           <table className="clients-table">
             <thead><tr><th>Data/Hora</th><th>Pet</th><th>Tutor</th><th>Serviço</th>{canViewFinance && <th>Valor</th>}<th>Status</th><th>Ações</th></tr></thead>

@@ -2,6 +2,7 @@ import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "../useDebouncedValue";
+import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
 import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ServiceForm from "./ServiceForm";
 import { filterServices } from "./serviceSearch";
@@ -35,6 +36,7 @@ function formatPrice(price) {
 
 export default function ServicesPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirmDialog();
   const canCreate = can(user, "services.create");
   const canUpdate = can(user, "services.update");
   const canDelete = can(user, "services.delete");
@@ -53,6 +55,7 @@ export default function ServicesPage() {
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loadRevision, setLoadRevision] = useState(0);
   const operationPending = useRef(false);
   const busy = submitting || deletingServiceId !== null;
 
@@ -90,7 +93,7 @@ export default function ServicesPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadRevision]);
 
   function clearOperationMessages() {
     setSuccessMessage(null);
@@ -184,9 +187,11 @@ export default function ServicesPage() {
 
     const hasHistory = Number(service.appointments_count || 0) + Number(service.attendances_count || 0) > 0;
     const actionText = hasHistory ? "desativar" : "excluir";
-    if (!window.confirm(`Deseja ${actionText} o serviço ${service.name}?${hasHistory ? " Os agendamentos existentes serão preservados." : " Esta ação não pode ser desfeita."}`)) {
-      return;
-    }
+    if (!(await confirm({
+      title: `${hasHistory ? 'Desativar' : 'Excluir'} serviço?`,
+      message: `Deseja ${actionText} o serviço ${service.name}?${hasHistory ? ' Os agendamentos existentes serão preservados.' : ' Esta ação não pode ser desfeita.'}`,
+      confirmLabel: hasHistory ? 'Desativar serviço' : 'Excluir serviço',
+    }))) return;
 
     operationPending.current = true;
     setDeletingServiceId(service.id);
@@ -220,6 +225,7 @@ export default function ServicesPage() {
 
   return (
     <section className="clients-page">
+      {dialog}
       <header className="clients-header">
         <div>
           <p>Cadastre e gerencie os serviços oferecidos pelo PetSystem.</p>
@@ -235,11 +241,7 @@ export default function ServicesPage() {
         </button>)}
       </header>
 
-      {successMessage && (
-        <div className="clients-feedback clients-feedback-success" role="status">
-          {successMessage}
-        </div>
-      )}
+      <Toast message={successMessage} />
 
       {isFormOpen && (
         <ServiceForm
@@ -252,17 +254,9 @@ export default function ServicesPage() {
         />
       )}
 
-      {submitError && (
-        <div className="clients-feedback clients-feedback-error" role="alert">
-          {submitError}
-        </div>
-      )}
+      {submitError && <Toast message={submitError} tone="error" />}
 
-      {deleteError && (
-        <div className="clients-feedback clients-feedback-error" role="alert">
-          {deleteError}
-        </div>
-      )}
+      {deleteError && <Toast message={deleteError} tone="error" />}
 
       <section className="clients-panel">
         <div className="clients-toolbar">
@@ -279,29 +273,19 @@ export default function ServicesPage() {
           />
         </div>
 
-        {loading && (
-          <div className="clients-state" role="status">
-            Carregando serviços...
-          </div>
-        )}
+        {loading && <LoadingSkeleton label="Carregando serviços..." />}
 
-        {!loading && error && (
-          <div className="clients-state clients-state-error" role="alert">
-            {error}
-          </div>
-        )}
+        {!loading && error && <ErrorState message={error} onRetry={() => { setLoading(true); setError(null); setLoadRevision((value) => value + 1); }} />}
 
         {!loading && !error && services.length === 0 && (
-          <div className="clients-state">Nenhum serviço cadastrado.</div>
+          <EmptyState message="Nenhum serviço cadastrado." actionLabel={canCreate ? 'Cadastrar serviço' : undefined} onAction={canCreate ? () => openForm() : undefined} />
         )}
 
         {!loading &&
           !error &&
           services.length > 0 &&
           filteredServices.length === 0 && (
-            <div className="clients-state">
-              Nenhum serviço encontrado para esta busca.
-            </div>
+            <EmptyState message="Nenhum serviço encontrado para esta busca." />
           )}
 
         {!loading && !error && filteredServices.length > 0 && (

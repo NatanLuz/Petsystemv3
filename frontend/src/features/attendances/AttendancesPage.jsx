@@ -8,6 +8,7 @@ import { listAppointments } from '../appointments/appointmentService';
 import { listClients } from '../clients/clientService';
 import { listPets } from '../pets/petService';
 import { listServices } from '../services/serviceService';
+import { EmptyState, ErrorState, LoadingSkeleton, Toast } from '../../components/feedback/Feedback';
 import { createAttendance, listAttendances, updateAttendance } from './attendanceService';
 
 const paymentMethods = ['Dinheiro', 'Pix', 'Cartão de crédito', 'Cartão de débito', 'Transferência'];
@@ -173,8 +174,8 @@ export default function AttendancesPage() {
       <header className="clients-header"><div><p>Registre procedimentos, evolução clínica e pagamento.</p></div>
         {canCreate && <button type="button" className="btn btn-primary clients-new-button" onClick={startNew} disabled={loading || optionsLoading || !!optionsError}>+ Novo atendimento</button>}
       </header>
-      {feedback && <p className="clients-feedback clients-feedback-success" role="status">{feedback}</p>}
-      {optionsError && <p className="clients-feedback clients-feedback-error" role="alert">{optionsError} <button type="button" onClick={refresh}>Tentar novamente</button></p>}
+      <Toast message={feedback} />
+      {optionsError && <ErrorState message={optionsError} onRetry={refresh} />}
       {formOpen && <form className="client-form-panel" onSubmit={handleSubmit}>
         <div className="client-form-header"><h2>{editing ? 'Atualizar atendimento' : 'Iniciar atendimento'}</h2>
           <p>{editing ? `${editing.pet?.name ?? 'Pet'} · ${editing.client?.name ?? 'Cliente'}` : 'Escolha um agendamento ou registre uma chegada sem horário marcado.'}</p></div>
@@ -202,10 +203,10 @@ export default function AttendancesPage() {
         <div className="client-form-actions"><button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Salvando...' : 'Salvar atendimento'}</button><button type="button" className="btn btn-secondary" onClick={() => setFormOpen(false)} disabled={saving}>Cancelar</button></div>
       </form>}
       <section className="clients-panel"><div className="clients-toolbar"><label className="clients-search-label" htmlFor="attendance-search">Buscar atendimentos</label><input id="attendance-search" className="clients-search-input" type="search" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Cliente, pet, serviço ou status" /></div>
-        {loading && <p className="clients-state" role="status">Carregando atendimentos...</p>}
-        {!loading && error && <div className="clients-state clients-state-error" role="alert">{error}<button type="button" onClick={refresh}>Tentar novamente</button></div>}
-        {!loading && !error && attendances.length === 0 && <p className="clients-state">Nenhum atendimento registrado.</p>}
-        {!loading && !error && attendances.length > 0 && visibleAttendances.length === 0 && <p className="clients-state">Nenhum atendimento encontrado.</p>}
+        {loading && <LoadingSkeleton label="Carregando atendimentos..." />}
+        {!loading && error && <ErrorState message={error} onRetry={refresh} />}
+        {!loading && !error && attendances.length === 0 && <EmptyState message="Nenhum atendimento registrado." actionLabel={canCreate ? 'Novo atendimento' : undefined} onAction={canCreate ? startNew : undefined} />}
+        {!loading && !error && attendances.length > 0 && visibleAttendances.length === 0 && <EmptyState message="Nenhum atendimento encontrado." />}
         {!loading && !error && visibleAttendances.length > 0 && <div className="clients-table-wrapper" role="region" aria-label="Tabela de atendimentos" tabIndex={0}><table className="clients-table"><thead><tr><th>Início</th><th>Cliente</th><th>Pet</th><th>Serviços</th><th>Status</th>{canViewFinance && <th>Valor cobrado</th>}<th>Ação</th></tr></thead>
           <tbody>{attendancePage.items.map((item) => <tr key={item.id}><td>{formatDate(item.started_at)}</td><td>{item.client?.name}</td><td>{item.pet?.name}</td><td>{item.services?.map((service) => service.name).join(', ')}</td><td>{item.status === 'completed' ? 'Concluído' : 'Em atendimento'}</td>{canViewFinance && <td>{item.amount_charged == null ? 'Não informado' : currency.format(Number(item.amount_charged))}</td>}<td>{canUpdate && (item.status !== 'completed' || isAdmin || isReception) && <button type="button" className="clients-action-button clients-action-edit" onClick={() => editAttendance(item)}>Atualizar</button>}</td></tr>)}</tbody>
         </table></div>}
