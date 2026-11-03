@@ -66,6 +66,8 @@ export default function AppointmentForm({
   const [formData, setFormData] = useState(() => getInitialFormData(initialData, defaultClientId, defaultPetId));
   const [pets, setPets] = useState([]);
   const [services, setServices] = useState([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false);
   const [loadingPets, setLoadingPets] = useState(true);
   const [loadingServices, setLoadingServices] = useState(true);
   const [petsError, setPetsError] = useState(null);
@@ -78,6 +80,8 @@ export default function AppointmentForm({
 
   useEffect(() => {
     setFormData(getInitialFormData(initialData, defaultClientId, defaultPetId));
+    setClientSearch('');
+    setShowClientSuggestions(false);
     setValidationError(null);
   }, [initialData, defaultClientId, defaultPetId]);
 
@@ -122,7 +126,18 @@ export default function AppointmentForm({
       (isEditing && Number(service.id) === Number(initialData.service_id)),
   );
   const availableClients = [...new Map(pets.filter((pet) => pet.client).map((pet) => [pet.client.id, pet.client])).values()];
+  const filteredClients = availableClients.filter((client) => [client.name, client.email, client.phone]
+    .some((value) => String(value ?? '').toLocaleLowerCase('pt-BR').includes(clientSearch.trim().toLocaleLowerCase('pt-BR'))));
   const eligiblePets = pets.filter((pet) => !formData.client_id || Number(pet.client_id) === Number(formData.client_id));
+
+  useEffect(() => {
+    if (!formData.client_id) {
+      setClientSearch('');
+      return;
+    }
+    const selectedClient = availableClients.find((client) => Number(client.id) === Number(formData.client_id));
+    if (selectedClient) setClientSearch(selectedClient.name);
+  }, [pets, formData.client_id]);
   const selectedService = eligibleServices.find(
     (service) => Number(service.id) === Number(formData.service_id),
   );
@@ -227,11 +242,29 @@ export default function AppointmentForm({
       )}
       <div className="client-form-grid">
         <label className="client-field">
-          <span>Cliente</span>
-          <select name="client_id" value={formData.client_id} onChange={handleChange} disabled={busy || loadingPets || !!petsError}>
-            <option value="">Todos os clientes</option>
-            {availableClients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
-          </select>
+          <span>Cliente ou tutor</span>
+          <input type="search" role="combobox" aria-autocomplete="list"
+            aria-expanded={showClientSuggestions && filteredClients.length > 0}
+            aria-controls="appointment-client-options" aria-label="Buscar tutor por nome, telefone ou e-mail"
+            placeholder="Todos os clientes — digite para filtrar" value={clientSearch}
+            onFocus={() => setShowClientSuggestions(true)}
+            onChange={(event) => {
+              setClientSearch(event.target.value);
+              setFormData((current) => ({ ...current, client_id: '', pet_id: '' }));
+              setShowClientSuggestions(true);
+            }} disabled={busy || loadingPets || !!petsError} />
+          {showClientSuggestions && clientSearch.trim() && filteredClients.length > 0 && (
+            <ul id="appointment-client-options" className="client-autocomplete-options" role="listbox">
+              {filteredClients.slice(0, 8).map((client) => <li key={client.id} role="option" aria-selected={Number(formData.client_id) === Number(client.id)}>
+                <button type="button" onClick={() => {
+                  setFormData((current) => ({ ...current, client_id: client.id, pet_id: '' }));
+                  setClientSearch(client.name);
+                  setShowClientSuggestions(false);
+                }}>{client.name}{client.phone ? ` · ${client.phone}` : ''}</button>
+              </li>)}
+            </ul>
+          )}
+          <span className="client-field-hint">{formData.client_id ? 'Pets filtrados pelo tutor selecionado.' : 'Sem seleção, todos os pets ficam disponíveis.'}</span>
         </label>
         <label className="client-field">
           <span>Pet *</span>

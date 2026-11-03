@@ -26,11 +26,13 @@ export default function ServiceForm({
   submitting = false,
   hasPermission = true,
   initialData = null,
+  fieldErrors = {},
 }) {
   const [formData, setFormData] = useState(() => getInitialFormData(initialData));
   const [validationError, setValidationError] = useState(null);
   const isEditing = initialData !== null;
   const fieldsDisabled = submitting || !hasPermission;
+  const errorFor = (field) => fieldErrors[field]?.[0];
 
   useEffect(() => {
     setFormData(getInitialFormData(initialData));
@@ -115,7 +117,9 @@ export default function ServiceForm({
             maxLength={255}
             required
             disabled={fieldsDisabled}
+            aria-invalid={!!errorFor('name')}
           />
+          {errorFor('name') && <span className="client-field-error" role="alert">{errorFor('name')}</span>}
         </label>
 
         <label className="client-field">
@@ -130,7 +134,9 @@ export default function ServiceForm({
             step="0.01"
             required
             disabled={fieldsDisabled}
+            aria-invalid={!!errorFor('price')}
           />
+          {errorFor('price') && <span className="client-field-error" role="alert">{errorFor('price')}</span>}
         </label>
 
         <label className="client-field">
@@ -145,7 +151,9 @@ export default function ServiceForm({
             step="1"
             required
             disabled={fieldsDisabled}
+            aria-invalid={!!errorFor('duration_minutes')}
           />
+          {errorFor('duration_minutes') && <span className="client-field-error" role="alert">{errorFor('duration_minutes')}</span>}
         </label>
 
         <label className="client-field">
@@ -155,10 +163,12 @@ export default function ServiceForm({
             value={String(formData.active)}
             onChange={handleChange}
             disabled={fieldsDisabled}
+            aria-invalid={!!errorFor('active')}
           >
             <option value="true">Ativo</option>
             <option value="false">Inativo</option>
           </select>
+          {errorFor('active') && <span className="client-field-error" role="alert">{errorFor('active')}</span>}
         </label>
 
         <label className="client-field">
@@ -169,7 +179,9 @@ export default function ServiceForm({
             onChange={handleChange}
             rows={3}
             disabled={fieldsDisabled}
+            aria-invalid={!!errorFor('description')}
           />
+          {errorFor('description') && <span className="client-field-error" role="alert">{errorFor('description')}</span>}
         </label>
       </div>
 

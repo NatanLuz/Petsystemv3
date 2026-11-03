@@ -38,6 +38,7 @@ export default function ServicesPage() {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [editingService, setEditingService] = useState(null);
   const [deletingServiceId, setDeletingServiceId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
@@ -91,6 +92,7 @@ export default function ServicesPage() {
     setSuccessMessage(null);
     setSubmitError(null);
     setDeleteError(null);
+    setFieldErrors({});
   }
 
   function openForm(service = null) {
@@ -149,6 +151,7 @@ export default function ServicesPage() {
         setSubmitError(null);
       } else if (requestError.response?.status === 422) {
         const errors = requestError.response.data?.errors;
+        setFieldErrors(errors || {});
         const fields = Object.keys(fieldLabels)
           .filter((field) => errors?.[field])
           .map((field) => fieldLabels[field]);
@@ -239,6 +242,7 @@ export default function ServicesPage() {
         <ServiceForm
           key={formKey}
           initialData={editingService}
+          fieldErrors={fieldErrors}
           onSubmit={handleSubmitService}
           onCancel={handleCancelForm}
           submitting={submitting}
