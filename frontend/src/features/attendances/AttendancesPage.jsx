@@ -32,7 +32,9 @@ export default function AttendancesPage() {
   const [pets, setPets] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [optionsLoading, setOptionsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [optionsError, setOptionsError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ appointment_id: '', client_id: '', pet_id: '', service_ids: [], amount_charged: '', payment_method: '', notes: '', evolution: '', status: 'in_progress' });
@@ -48,21 +50,34 @@ export default function AttendancesPage() {
 
   async function refresh() {
     setLoading(true);
+    setOptionsLoading(true);
     setError('');
-    try {
-      const [nextAttendances, nextAppointments, nextClients, nextPets, nextServices] = await Promise.all([
-        listAttendances(), listAppointments(), listClients(), listPets(), listServices(),
-      ]);
-      setAttendances(nextAttendances);
-      setAppointments(nextAppointments);
-      setClients(nextClients);
-      setPets(nextPets);
-      setServices(nextServices);
-    } catch {
-      setError('Não foi possível carregar os atendimentos e opções. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
+    setOptionsError('');
+
+    const attendanceRequest = listAttendances()
+      .then((nextAttendances) => {
+        if (!Array.isArray(nextAttendances)) throw new TypeError('Invalid attendance list response.');
+        setAttendances(nextAttendances);
+      })
+      .catch(() => setError('Não foi possível carregar os atendimentos. Tente novamente.'))
+      .finally(() => setLoading(false));
+
+    const optionRequests = [
+      [listAppointments, setAppointments],
+      [listClients, setClients],
+      [listPets, setPets],
+      [listServices, setServices],
+    ];
+    const optionsRequest = Promise.allSettled(optionRequests.map(([load, setData]) => load().then((data) => {
+      if (!Array.isArray(data)) throw new TypeError('Invalid attendance form options response.');
+      setData(data);
+    }))).then((results) => {
+      if (results.some((result) => result.status === 'rejected')) {
+        setOptionsError('Não foi possível carregar todas as opções do formulário. Tente novamente.');
+      }
+    }).finally(() => setOptionsLoading(false));
+
+    await Promise.all([attendanceRequest, optionsRequest]);
   }
 
   useEffect(() => { refresh(); }, []);
@@ -156,9 +171,10 @@ export default function AttendancesPage() {
   return (
     <section className="clients-page">
       <header className="clients-header"><div><p>Registre procedimentos, evolução clínica e pagamento.</p></div>
-        {canCreate && <button type="button" className="btn btn-primary clients-new-button" onClick={startNew} disabled={loading || !!error}>+ Novo atendimento</button>}
+        {canCreate && <button type="button" className="btn btn-primary clients-new-button" onClick={startNew} disabled={loading || optionsLoading || !!optionsError}>+ Novo atendimento</button>}
       </header>
       {feedback && <p className="clients-feedback clients-feedback-success" role="status">{feedback}</p>}
+      {optionsError && <p className="clients-feedback clients-feedback-error" role="alert">{optionsError} <button type="button" onClick={refresh}>Tentar novamente</button></p>}
       {formOpen && <form className="client-form-panel" onSubmit={handleSubmit}>
         <div className="client-form-header"><h2>{editing ? 'Atualizar atendimento' : 'Iniciar atendimento'}</h2>
           <p>{editing ? `${editing.pet?.name ?? 'Pet'} · ${editing.client?.name ?? 'Cliente'}` : 'Escolha um agendamento ou registre uma chegada sem horário marcado.'}</p></div>

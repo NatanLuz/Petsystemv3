@@ -22,6 +22,22 @@ class AttendanceApiTest extends TestCase
         $this->actingAs(User::factory()->active()->receptionist()->create(), 'web');
     }
 
+    public function test_attendance_index_returns_an_array_for_the_frontend_list(): void
+    {
+        [$client, $pet, $service] = $this->records();
+        $this->postJson('/api/attendances', [
+            'client_id' => $client->id,
+            'pet_id' => $pet->id,
+            'service_ids' => [$service->id],
+        ])->assertCreated();
+
+        $this->getJson('/api/attendances')->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.client.id', $client->id)
+            ->assertJsonPath('0.pet.id', $pet->id)
+            ->assertJsonPath('0.services.0.id', $service->id);
+    }
+
     public function test_receptionist_starts_attendance_from_confirmed_appointment_and_records_payment(): void
     {
         [$client, $pet, $service] = $this->records();
