@@ -97,6 +97,16 @@ export default function AppointmentsPage() {
   async function handleSubmit(data) {
     if (!(editingAppointment ? canUpdate : canCreate)) return;
     if (operationPending.current) return;
+    if (data.status === 'cancelled' && editingAppointment?.status !== 'cancelled') {
+      operationPending.current = true;
+      const confirmed = await confirm({
+        title: 'Cancelar agendamento?',
+        message: `Confirma o cancelamento do atendimento de ${editingAppointment?.pet?.name || 'pet indisponível'} em ${formatAppointmentDate(editingAppointment?.scheduled_at)}? Motivo: ${data.cancellation_reason || 'não informado'}.`,
+        confirmLabel: 'Cancelar agendamento',
+      });
+      operationPending.current = false;
+      if (!confirmed) return;
+    }
     operationPending.current = true;
     setSubmitting(true);
     clearMessages();
