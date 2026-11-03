@@ -1029,3 +1029,62 @@ button.metric-card:focus-visible {
     padding-left: 0.65rem;
   }
 }
+
+.sidebar-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.sidebar-toggle svg,
+.sidebar-icon {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 3px solid var(--accent-warning);
+  outline-offset: 2px;
+}
+
+.sidebar-link { gap: 0.7rem; }
+.sidebar-icon { opacity: 0.88; }
+.sidebar-link-active .sidebar-icon { opacity: 1; }
+
+.sidebar-identity {
+  display: grid;
+  gap: 0.15rem;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.sidebar-identity strong,
+.sidebar-identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-identity strong { font-size: 0.9rem; }
+.sidebar-identity span { color: rgba(255, 255, 255, 0.75); font-size: 0.8rem; }
+.sidebar-logout { width: 100%; }
+
+@media (max-width: 760px) {
+  .sidebar-brand { justify-content: space-between; }
+  .sidebar-toggle { display: inline-flex; }
+  .app-sidebar .sidebar-nav { display: none; }
+  .app-sidebar.sidebar-open .sidebar-nav { display: grid; }
+}
