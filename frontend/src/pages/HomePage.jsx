@@ -83,7 +83,7 @@ function MetricCard({ label, tone, helper, load, loadKey = 0, onClick }) {
       ) : (
         <strong className="metric-value">{state.value?.display ?? state.value}</strong>
       )}
-      {!state.error && <span className="metric-helper">{state.value?.helper ?? helper}</span>}
+      {!state.error && (state.value?.helper ?? helper) && <span className="metric-helper">{state.value?.helper ?? helper}</span>}
     </>
   );
   const className = `metric-card metric-card-${tone}${onClick ? ' metric-card-interactive' : ''}`;
@@ -143,8 +143,7 @@ const loadRevenue = async (clinicDate) => {
   const metrics = await loadDashboardResource('dashboard-finance', getDashboardMetrics);
   const amount = Number(metrics.revenue);
   const display = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: metrics.currency || 'BRL' }).format(Number.isFinite(amount) ? amount : 0);
-  const period = `Concluídos · ${metrics.period.from} a ${metrics.period.through} · ${metrics.time_zone}`;
-  return { display, helper: period, clinicDate };
+  return { display, helper: '', clinicDate };
 };
 
 export default function HomePage() {
