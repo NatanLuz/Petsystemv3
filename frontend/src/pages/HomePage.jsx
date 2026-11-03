@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { can } from '../features/auth/permissions';
+import { appointmentStatuses } from '../features/appointments/AppointmentForm';
 import { listAppointments } from '../features/appointments/appointmentService';
 import { listAttendances } from '../features/attendances/attendanceService';
 import { listClients } from '../features/clients/clientService';
@@ -121,7 +122,7 @@ function TodayAppointments({ appointments, loading, error, clinicDate, clinicDat
                   <td>{appointment.pet?.name || 'Pet indisponível'}</td>
                   <td>{appointment.pet?.client?.name || 'Tutor indisponível'}</td>
                   <td>{appointment.service?.name || 'Serviço indisponível'}</td>
-                  <td>{appointment.status === 'confirmed' ? 'Confirmado' : 'Agendado'}</td>
+                  <td><span className={appointmentStatuses[appointment.status]?.className || 'badge'}>{appointmentStatuses[appointment.status]?.label || 'Status indisponível'}</span></td>
                   <td>{canStartAttendance && appointment.status === 'confirmed'
                     ? <Link className="clients-action-button clients-action-edit" to={`/attendances?appointment_id=${appointment.id}`}>Iniciar atendimento</Link>
                     : <Link className="clients-action-button clients-action-edit" to={`/appointments?date=${clinicDate}`}>Abrir agenda</Link>}</td>
