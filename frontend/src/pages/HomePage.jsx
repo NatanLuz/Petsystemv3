@@ -234,10 +234,14 @@ export default function HomePage() {
         <MetricCard label="Total de Clientes" tone="blue" helper="Clientes cadastrados" load={loadClients} onClick={() => navigate('/clients')} />
         <MetricCard label="Pets Cadastrados" tone="green" helper="Pets cadastrados" load={loadPets} onClick={() => navigate('/pets')} />
         <MetricCard label="Agendamentos de Hoje" tone="yellow" helper="Agendados e confirmados · horário local da clínica" load={loadAppointmentsToday} loadKey={clinicDate} onClick={() => navigate(`/appointments?date=${clinicDate}`)} />
-        {(user?.role === 'admin' || user?.role === 'receptionist') && <MetricCard label="Faturamento no mês" tone="cyan" helper="Atendimentos concluídos" load={loadRevenue} loadKey={clinicDate} onClick={() => navigate('/attendances?status=completed')} />}
       </div>
+      {(user?.role === 'admin' || user?.role === 'receptionist') && (
+        <div className="dashboard-finance-grid">
+          <MetricCard label="Faturamento no mês" tone="cyan" helper="Atendimentos concluídos" load={loadRevenue} loadKey={clinicDate} onClick={() => navigate('/attendances?status=completed')} />
+          {canViewFinance && <RevenueChart clinicDate={clinicDate} />}
+        </div>
+      )}
       <TodayAppointments appointments={agenda.appointments} loading={agenda.loading} error={agenda.error} clinicDate={clinicDate} clinicDateTime={clinicDateTime} canStartAttendance={canStartAttendance} onRetry={() => { setAgenda((current) => ({ ...current, loading: true, error: false })); setAgendaRevision((value) => value + 1); }} />
-      {canViewFinance && <RevenueChart clinicDate={clinicDate} />}
     </section>
   );
 }
