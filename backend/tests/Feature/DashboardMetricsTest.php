@@ -27,7 +27,7 @@ class DashboardMetricsTest extends TestCase
         ]);
         Attendance::create([
             'client_id' => $client->id, 'pet_id' => $pet->id, 'status' => Attendance::STATUS_COMPLETED,
-            'amount_charged' => '40.00', 'completed_at' => now('America/Sao_Paulo')->subMonth()->utc(),
+            'amount_charged' => '40.00', 'completed_at' => now('America/Sao_Paulo')->subMonthNoOverflow()->utc(),
         ]);
 
         $this->actingAs(User::factory()->active()->receptionist()->create(), 'web')
@@ -48,5 +48,11 @@ class DashboardMetricsTest extends TestCase
     {
         $this->actingAs(User::factory()->active()->veterinarian()->create(), 'web')
             ->getJson('/api/dashboard/metrics')->assertForbidden();
+    }
+    public function test_receptionist_can_view_financial_metrics(): void
+    {
+        $this->actingAs(User::factory()->active()->receptionist()->create(), 'web')
+            ->getJson('/api/dashboard/metrics')
+            ->assertOk();
     }
 }
