@@ -11,6 +11,7 @@ import {
 } from "./appointmentDateTime";
 import { listPets } from "../pets/petService";
 import { listServices } from "../services/serviceService";
+import { filterAppointmentClients } from './appointmentSearch.js';
 
 export { formatAppointmentDate, toOperationalInput, toOperationalPayload };
 
@@ -126,15 +127,11 @@ export default function AppointmentForm({
       (isEditing && Number(service.id) === Number(initialData.service_id)),
   );
   const availableClients = [...new Map(pets.filter((pet) => pet.client).map((pet) => [pet.client.id, pet.client])).values()];
-  const filteredClients = availableClients.filter((client) => [client.name, client.email, client.phone]
-    .some((value) => String(value ?? '').toLocaleLowerCase('pt-BR').includes(clientSearch.trim().toLocaleLowerCase('pt-BR'))));
+  const filteredClients = filterAppointmentClients(availableClients, clientSearch);
   const eligiblePets = pets.filter((pet) => !formData.client_id || Number(pet.client_id) === Number(formData.client_id));
 
   useEffect(() => {
-    if (!formData.client_id) {
-      setClientSearch('');
-      return;
-    }
+    if (!formData.client_id) return;
     const selectedClient = availableClients.find((client) => Number(client.id) === Number(formData.client_id));
     if (selectedClient) setClientSearch(selectedClient.name);
   }, [pets, formData.client_id]);

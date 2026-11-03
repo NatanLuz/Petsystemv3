@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { filterAppointments, filterAppointmentsByDate } from "./appointmentSearch.js";
+import { filterAppointmentClients, filterAppointments, filterAppointmentsByDate } from "./appointmentSearch.js";
 
 const statuses = {
   scheduled: { label: "Agendado" },
@@ -31,4 +31,15 @@ test("appointment list can be filtered by clinic wall date", () => {
   assert.deepEqual(filterAppointmentsByDate(appointments, "2026-10-13").map(({ id }) => id), [2, 1]);
   assert.deepEqual(filterAppointmentsByDate(appointments, "2026-10-14"), []);
   assert.deepEqual(filterAppointmentsByDate(appointments, ""), appointments);
+});
+
+test('appointment tutor search matches name, phone and email while retaining all clients for a blank query', () => {
+  const clients = [
+    { id: 1, name: 'Ana Souza', email: 'ana@example.test', phone: '11987654321' },
+    { id: 2, name: 'Bruno Lima', email: null, phone: '1133332222' },
+  ];
+  assert.deepEqual(filterAppointmentClients(clients, 'ana').map(({ id }) => id), [1]);
+  assert.deepEqual(filterAppointmentClients(clients, '3333').map(({ id }) => id), [2]);
+  assert.deepEqual(filterAppointmentClients(clients, 'EXAMPLE.TEST').map(({ id }) => id), [1]);
+  assert.deepEqual(filterAppointmentClients(clients, '  '), clients);
 });

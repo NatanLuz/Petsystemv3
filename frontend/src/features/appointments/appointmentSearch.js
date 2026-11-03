@@ -19,3 +19,9 @@ export function filterAppointmentsByDate(appointments, date) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return appointments;
   return appointments.filter((appointment) => String(appointment.scheduled_at ?? '').slice(0, 10) === date);
 }
+
+export function filterAppointmentClients(clients, searchTerm) {
+  const search = String(searchTerm ?? '').trim().toLocaleLowerCase('pt-BR');
+  return clients.filter((client) => !search || [client.name, client.email, client.phone]
+    .some((value) => String(value ?? '').toLocaleLowerCase('pt-BR').includes(search)));
+}
