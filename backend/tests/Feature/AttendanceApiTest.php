@@ -38,6 +38,80 @@ class AttendanceApiTest extends TestCase
             ->assertJsonPath('0.services.0.id', $service->id);
     }
 
+    public function test_attendance_page_lists_work_for_each_role_and_redact_nested_sensitive_fields(): void
+    {
+        [$client, $pet, $service] = $this->records();
+        $appointment = $this->appointment($pet, $service);
+        $attendance = Attendance::create([
+            'appointment_id' => $appointment->id,
+            'client_id' => $client->id,
+            'pet_id' => $pet->id,
+            'status' => Attendance::STATUS_COMPLETED,
+            'amount_charged' => '125.50',
+            'payment_method' => 'Pix',
+            'evolution' => 'Evolução clínica de teste.',
+            'started_at' => now(),
+            'completed_at' => now(),
+        ]);
+        $attendance->services()->attach($service->id, [
+            'price' => $service->price,
+            'duration_minutes' => $service->duration_minutes,
+        ]);
+
+        $users = [
+            'admin' => User::factory()->active()->admin()->create(),
+            'receptionist' => User::factory()->active()->receptionist()->create(),
+            'veterinarian' => User::factory()->active()->veterinarian()->create(),
+        ];
+        $listEndpoints = [
+            '/api/attendances',
+            '/api/appointments',
+            '/api/clients',
+            '/api/pets',
+            '/api/services',
+        ];
+
+        foreach ($users as $user) {
+            Auth::forgetGuards();
+            $this->actingAs($user, 'web');
+
+            foreach ($listEndpoints as $endpoint) {
+                $response = $this->getJson($endpoint)->assertOk();
+                $this->assertIsArray($response->json(), "Expected a JSON list from {$endpoint} for {$user->role}.");
+            }
+        }
+
+        Auth::forgetGuards();
+        $this->actingAs($users['admin'], 'web');
+        $this->getJson('/api/attendances')->assertJsonPath('0.amount_charged', '125.50')
+            ->assertJsonPath('0.evolution', 'Evolução clínica de teste.');
+
+        Auth::forgetGuards();
+        $this->actingAs($users['receptionist'], 'web');
+        $this->getJson('/api/attendances')->assertJsonMissingPath('0.evolution');
+        $this->getJson('/api/clients/'.$client->id)
+            ->assertJsonMissingPath('pets.0.attendances.0.evolution');
+        $this->getJson('/api/pets/'.$pet->id)
+            ->assertJsonMissingPath('attendances.0.evolution');
+
+        Auth::forgetGuards();
+        $this->actingAs($users['veterinarian'], 'web');
+        $this->getJson('/api/attendances')->assertJsonMissingPath('0.amount_charged')
+            ->assertJsonMissingPath('0.payment_method')
+            ->assertJsonMissingPath('0.services.0.pivot.price');
+        $this->getJson('/api/appointments')->assertJsonMissingPath('0.price')
+            ->assertJsonMissingPath('0.service.price');
+        $this->getJson('/api/services')->assertJsonMissingPath('0.price');
+        $this->getJson('/api/clients/'.$client->id)
+            ->assertJsonMissingPath('pets.0.appointments.0.price')
+            ->assertJsonMissingPath('pets.0.attendances.0.amount_charged')
+            ->assertJsonMissingPath('pets.0.attendances.0.services.0.pivot.price');
+        $this->getJson('/api/pets/'.$pet->id)
+            ->assertJsonMissingPath('appointments.0.price')
+            ->assertJsonMissingPath('attendances.0.amount_charged')
+            ->assertJsonMissingPath('attendances.0.services.0.pivot.price');
+    }
+
     public function test_receptionist_starts_attendance_from_confirmed_appointment_and_records_payment(): void
     {
         [$client, $pet, $service] = $this->records();
