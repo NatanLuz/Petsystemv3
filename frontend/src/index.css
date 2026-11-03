@@ -1150,6 +1150,14 @@ button.metric-card:focus-visible {
 .confirm-dialog-actions { display: flex; justify-content: flex-end; gap: 0.65rem; margin-top: 1.25rem; }
 .btn-danger { background: #b42318; color: #ffffff; }
 .btn-danger:hover { background: #912018; }
+.revenue-chart-panel { margin-top: 1rem; }
+.revenue-chart-scroll { overflow-x: auto; }
+.revenue-chart { display: block; width: 100%; min-width: 660px; height: auto; overflow: visible; }
+.revenue-chart-axis { stroke: var(--border-color); stroke-width: 1.5; }
+.revenue-chart-bar { fill: var(--accent-blue); transition: opacity 140ms ease; }
+.revenue-chart-bar:hover { opacity: 0.78; }
+.revenue-chart-date { fill: var(--text-muted); font-size: 11px; }
+.revenue-chart-value { fill: var(--text-main); font-size: 10px; font-weight: 700; }
 
 @media (max-width: 760px) {
   .sidebar-brand { justify-content: space-between; }

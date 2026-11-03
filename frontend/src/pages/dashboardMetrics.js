@@ -70,3 +70,31 @@ export function countAppointmentsForClinicDate(appointments, clinicDate) {
     && getLocalDatePrefix(appointment?.scheduled_at) === clinicDate,
   ).length;
 }
+
+function dateInClinicTimeZone(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return null;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: CLINIC_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value: part }) => [type, part]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+export function getRevenueLastSevenDays(attendances, now = new Date()) {
+  if (!Array.isArray(attendances)) throw new TypeError('A resposta não é uma lista.');
+  const today = getClinicDate(now);
+  const [year, month, day] = today.split('-').map(Number);
+  const dates = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(Date.UTC(year, month - 1, day - (6 - index)));
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  });
+  const totals = new Map(dates.map((date) => [date, 0]));
+  for (const attendance of attendances) {
+    if (attendance?.status !== 'completed' || !attendance.completed_at) continue;
+    const date = dateInClinicTimeZone(attendance.completed_at);
+    const amount = Number(attendance.amount_charged);
+    if (totals.has(date) && Number.isFinite(amount)) totals.set(date, totals.get(date) + amount);
+  }
+  return dates.map((date) => ({ date, total: Math.round(totals.get(date) * 100) / 100 }));
+}

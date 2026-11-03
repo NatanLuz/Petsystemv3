@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   countAppointmentsForClinicDate,
+  getRevenueLastSevenDays,
   countRecords,
   getClinicDate,
   hasClinicDateChanged,
@@ -12,6 +13,23 @@ test('counts real client and pet list sizes, including zero records', () => {
   assert.equal(countRecords([{ id: 1 }, { id: 2 }]), 2);
   assert.equal(countRecords([]), 0);
   assert.throws(() => countRecords({ data: [] }), TypeError);
+});
+
+test('revenue chart includes only completed attendance in clinic-local seven-day window', () => {
+  const now = new Date('2026-11-03T15:00:00.000Z');
+  const rows = getRevenueLastSevenDays([
+    { status: 'completed', completed_at: '2026-10-28T13:00:00.000Z', amount_charged: '40.00' },
+    { status: 'in_progress', completed_at: '2026-11-03T13:00:00.000Z', amount_charged: '90.00' },
+    { status: 'completed', completed_at: '2026-11-03T02:30:00.000Z', amount_charged: '12.50' },
+    { status: 'completed', completed_at: '2026-11-03T13:00:00.000Z', amount_charged: '25.00' },
+    { status: 'completed', completed_at: '2026-10-27T13:00:00.000Z', amount_charged: '300.00' },
+  ], now);
+  assert.deepEqual(rows.map(({ date }) => date), [
+    '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-03',
+  ]);
+  assert.equal(rows[0].total, 40);
+  assert.equal(rows[5].total, 12.5);
+  assert.equal(rows[6].total, 25);
 });
 
 test('clinic date follows America/Sao_Paulo around local midnight', () => {
