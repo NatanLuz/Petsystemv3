@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import LoginPage from '../features/auth/LoginPage';
 import ProtectedRoute from './ProtectedRoute';
 import ClientsPage from '../features/clients/ClientsPage';
@@ -15,6 +15,23 @@ import HealthPage from '../pages/HealthPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 export default function AppRoutes() {
+  const location = useLocation();
+  useEffect(() => {
+    const path = location.pathname;
+    const title = path === '/login' ? 'Entrar'
+      : path === '/' ? 'Dashboard'
+        : path === '/health' ? 'Status da API'
+          : path === '/clients' ? 'Clientes'
+            : /^\/clients\/[^/]+$/.test(path) ? 'Ficha do cliente'
+              : path === '/pets' ? 'Pets'
+                : /^\/pets\/[^/]+$/.test(path) ? 'Ficha do pet'
+                  : path === '/services' ? 'Serviços'
+                    : path === '/appointments' ? 'Agendamentos'
+                      : path === '/attendances' ? 'Atendimentos'
+                        : 'Página não encontrada';
+    document.title = `${title} | PetSystem V3`;
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
