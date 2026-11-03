@@ -37,6 +37,7 @@ export default function AttendancesPage() {
   const [form, setForm] = useState({ appointment_id: '', client_id: '', pet_id: '', service_ids: [], amount_charged: '', payment_method: '', notes: '', evolution: '', status: 'in_progress' });
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [feedbackTone, setFeedbackTone] = useState('success');
   const [fieldErrors, setFieldErrors] = useState({});
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -144,8 +145,10 @@ export default function AttendancesPage() {
       setFormOpen(false);
       setSearchParams((current) => { const next = new URLSearchParams(current); next.delete('appointment_id'); return next; }, { replace: true });
       setFeedback(editing ? 'Atendimento atualizado.' : 'Atendimento iniciado.');
+      setFeedbackTone('success');
       await refresh();
     } catch (requestError) {
+      setFeedbackTone('error');
       const response = requestError.response;
       if (response?.status === 422) {
         setFieldErrors(response.data?.errors || {});
@@ -170,7 +173,7 @@ export default function AttendancesPage() {
       <header className="clients-header"><div><p>Registre procedimentos, evolução clínica e pagamento.</p></div>
         {canCreate && <button type="button" className="btn btn-primary clients-new-button" onClick={startNew} disabled={loading || optionsLoading || !!optionsError}>+ Novo atendimento</button>}
       </header>
-      <Toast message={feedback} />
+      <Toast message={feedback} tone={feedbackTone} />
       {optionsError && <ErrorState message={optionsError} onRetry={refresh} />}
       {formOpen && <form className="client-form-panel" onSubmit={handleSubmit}>
         <div className="client-form-header"><h2>{editing ? 'Atualizar atendimento' : 'Iniciar atendimento'}</h2>
