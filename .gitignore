@@ -20,6 +20,13 @@ vendor/
 /backend/storage/logs/*
 /backend/bootstrap/cache/*
 
+# Local databases, runtime logs, and PHPUnit cache
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.log
+.phpunit.result.cache
+
 # Frontend specific
 /frontend/dist/
 /frontend/dist-ssr/
