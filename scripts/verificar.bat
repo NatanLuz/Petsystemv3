@@ -45,16 +45,13 @@ set "VERIFY_RESULT=!ERRORLEVEL!"
 if "!VERIFY_RESULT!"=="0" (
   set "BUILD_RESULT=0"
 ) else (
-  findstr /I /C:"vite v" "%VERIFY_LOG%" >nul
-  if errorlevel 1 (
+  findstr /I /C:"not ok" "%VERIFY_LOG%" >nul
+  if not errorlevel 1 (
     set "NODE_RESULT=1"
     set "NODE_FAILURE_LOG=%VERIFY_LOG%"
-    call npm.cmd run build > "%BUILD_LOG%" 2>&1
-    set "BUILD_RESULT=!ERRORLEVEL!"
-  ) else (
-    set "BUILD_RESULT=1"
-    copy /y "%VERIFY_LOG%" "%BUILD_LOG%" >nul
   )
+  call npm.cmd run build > "%BUILD_LOG%" 2>&1
+  set "BUILD_RESULT=!ERRORLEVEL!"
 )
 popd
 
