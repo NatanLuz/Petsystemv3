@@ -1,46 +1,46 @@
-# Configuracao local — PetSystem V3
+# Configuração local — PetSystem V3
 
-Este guia prepara a demonstracao local no Windows. O ambiente usa SQLite; o MySQL fica para uma etapa futura. Nao sao necessarios dados antigos, servidor MySQL ou credenciais padrao.
+Este guia prepara a demonstração local no Windows. Ela usa SQLite; o MySQL será configurado em uma etapa futura. Não são necessários banco histórico nem credenciais padrão.
 
 ## Requisitos
 
 - Windows e Git.
 - PHP 8.2 em `C:\xampp\php\php.exe`.
-- Composer disponivel no `PATH` caso `backend\vendor\autoload.php` ainda nao exista.
-- `node.exe` e `npm.cmd` no `PATH` caso `frontend\node_modules\.bin\vite.cmd` ainda nao exista.
+- Composer no `PATH` se `backend\vendor\autoload.php` não existir.
+- `node.exe` e `npm.cmd` no `PATH` se `frontend\node_modules\.bin\vite.cmd` não existir.
 
 ## Como rodar em 3 passos
 
-1. Na pasta do projeto, de dois cliques em `scripts\iniciar.bat`. Ele pode ser chamado de qualquer diretorio. O script abre janelas separadas para backend e frontend, aguarda a API pronta e abre o navegador.
-2. Acesse `http://127.0.0.1:5173`. O frontend usa a API em `http://127.0.0.1:8000/api`.
-3. De dois cliques em `scripts\criar-usuario.bat` e informe nome, e-mail, perfil e senha no terminal. A senha fica oculta; o projeto nao fornece contas ou senhas padrao.
+1. Dê dois cliques em `scripts\iniciar.bat`. Ele pode ser chamado de qualquer diretório, inicia backend e frontend em janelas separadas, aguarda a API ficar pronta e abre o navegador.
+2. Acesse `http://127.0.0.1:5173`. O frontend consome a API em `http://127.0.0.1:8000/api`.
+3. Dê dois cliques em `scripts\criar-usuario.bat` e informe nome, e-mail, perfil e senha no terminal. A senha fica oculta e não há conta ou senha padrão.
 
-O comando cria usuarios apenas quando o ambiente efetivo e `demo` e a conexao SQLite aponta para `backend\database\petsystem_demo.sqlite`. Nao passe a senha como argumento. Os perfis aceitos sao `admin`, `receptionist` e `veterinarian`.
+O comando de criação aceita os perfis `admin`, `receptionist` e `veterinarian`, e só opera no ambiente demo com conexão SQLite.
 
-## Banco SQLite da demonstracao
+## Banco SQLite da demonstração
 
-O ambiente selecionado e `backend\.env.demo`, carregado por `php artisan --env=demo`. A demonstracao persiste em `backend\database\petsystem_demo.sqlite`; ambos os arquivos locais sao ignorados pelo Git.
+O ambiente usa `backend\.env.demo`, carregado com `php artisan --env=demo`, e persiste em `backend\database\petsystem_demo.sqlite`. Esses arquivos são locais e ignorados pelo Git.
 
-Ao iniciar, `scripts\iniciar.bat` confere o ambiente e o caminho efetivos sem exibir credenciais. Se o arquivo SQLite nao existir, cria um arquivo vazio, aplica as migrations com `--force` somente nesse SQLite novo e roda `DemoDataSeeder`. O seeder usa registros ficticios e operacoes `firstOrCreate`. Se o banco ja existe, o script consulta o status e executa `migrate --force` apenas quando encontra migrations pendentes; nao recria nem apaga o banco.
+Na inicialização, `scripts\iniciar.bat` verifica ambiente e conexão sem mostrar credenciais. Se o arquivo SQLite ainda não existir, cria um arquivo vazio, aplica migrations nesse banco novo e executa `DemoDataSeeder`. Se o banco já existir, verifica o status e executa migrations somente quando houver pendências; não recria nem apaga o banco. O seeder usa dados fictícios.
 
-O script nao inicia nem altera MySQL/MariaDB. A configuracao para MySQL sera feita posteriormente, em uma etapa separada. O banco historico nao e usado pela demonstracao.
+O script não inicia nem modifica MySQL/MariaDB. A instância MySQL será configurada depois, separadamente. O banco histórico não é usado pela demonstração.
 
 ## Perfis e privacidade
 
-As permissoes sao conferidas pela API Laravel, alem dos controles visuais do frontend.
+As permissões são aplicadas pela API Laravel, além dos controles da interface.
 
-- `admin`: operacoes administrativas permitidas pela API, incluindo financeiro e informacoes clinicas.
-- `receptionist`: rotina de cadastro, agenda e atendimento conforme as regras do backend; pode consultar o financeiro, mas nao recebe evolucao clinica.
-- `veterinarian`: rotina de pacientes e atendimento clinico conforme as regras do backend; nao recebe precos, valores cobrados nem dados financeiros.
+- `admin`: operações administrativas permitidas pela API, incluindo informações financeiras e clínicas.
+- `receptionist`: rotina de cadastros, agenda e atendimento conforme as regras do backend; pode consultar dados financeiros, mas não recebe evolução clínica.
+- `veterinarian`: rotina de pacientes e atendimento clínico conforme as regras do backend; não recebe preços, valores cobrados nem outros dados financeiros.
 
-Nao ha senha predefinida. Para criar outra conta local, execute `scripts\criar-usuario.bat`; a unicidade do e-mail e validada pelo comando Artisan.
+Não há senha predefinida. Para criar uma conta local, use `scripts\criar-usuario.bat`; o e-mail precisa ser único.
 
-## Verificacao
+## Verificação
 
-De dois cliques em `scripts\verificar.bat`. Antes dos testes PHP, o script interrompe se houver `backend\bootstrap\cache\config.php` ou `backend\.env.testing`; define explicitamente `APP_ENV=testing`, `DB_CONNECTION=sqlite` e `DB_DATABASE=:memory:` para que a suite nunca use o SQLite persistente da demonstracao.
+Dê dois cliques em `scripts\verificar.bat`. Antes dos testes PHP, o script interrompe se detectar `backend\bootstrap\cache\config.php` ou `backend\.env.testing` e define explicitamente o ambiente de testes com SQLite em memória (`DB_DATABASE=:memory:`), separado do SQLite persistente da demonstração.
 
-O script roda `php artisan test`, `node.exe --test` e `npm.cmd run verify` (testes frontend e build Vite). Ele mostra uma linha por etapa e, em falha, apenas as ultimas linhas do log temporario. O resultado final e `TUDO OK` ou `FALHOU em: ...`.
+O script executa `php artisan test`, `node.exe --test` e `npm.cmd run verify` (testes frontend e build Vite). Mostra uma linha por etapa e, em caso de falha, apenas as últimas linhas do log temporário. O resultado final é `TUDO OK` ou `FALHOU em: ...`.
 
 ## Encerrar
 
-Use `scripts\parar.bat`. Ele consulta os listeners nas portas 8000 e 5173 e encerra somente um processo cuja linha de comando identifica esta copia do PetSystem demo. Processos nao identificados sao ignorados.
+Use `scripts\parar.bat`. Ele consulta os listeners nas portas 8000 e 5173 e encerra somente um processo cuja linha de comando identifica esta cópia do PetSystem demo. Processos não identificados são ignorados.
