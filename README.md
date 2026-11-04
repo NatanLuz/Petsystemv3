@@ -16,7 +16,7 @@ Aplicação Web para apoiar a rotina de uma clínica veterinária, com API Larav
 - Frontend: React 18, React Router, Axios e Vite 6.
 - Testes: PHPUnit no backend e `node:test` nos testes unitários do frontend.
 
-## Executar localmente
+## Como Executar localmente
 
 Consulte [`docs/setup.md`](docs/setup.md) para requisitos, criação do banco local, configuração Sanctum/CORS, instalação, primeiro usuário ativo e execução segura dos testes. O guia separa os comandos que alteram o banco.
 
