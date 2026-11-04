@@ -21,7 +21,7 @@ Aplicação web para apoiar a rotina de uma clínica veterinária, com API Larav
 - Demonstração local: SQLite. A configuração MySQL é uma etapa futura.
 - Testes: PHPUnit no backend e `node:test` no frontend.
 
-## Executar localmente no Windows
+## Como Executar localmente
 
 1. Dê dois cliques em `scripts\iniciar.bat`. O script prepara o ambiente demo e abre backend e frontend em janelas separadas.
 2. Acesse `http://127.0.0.1:5173` no navegador.
