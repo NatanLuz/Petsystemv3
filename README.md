@@ -18,10 +18,17 @@ Aplicação web para apoiar a rotina de uma clínica veterinária, com API Larav
 - Frontend: React 18, React Router, Axios e Vite 6.
 - Testes: PHPUnit no backend e `node:test` nos testes unitários do frontend.
 
-## Executar localmente
+## Executar localmente no Windows
 
-Consulte [`docs/setup.md`](docs/setup.md) para requisitos, banco local, configuração Sanctum/CORS, instalação, provisionamento do primeiro usuário, dados fictícios opcionais e testes. Na demonstração Windows, use somente a instância MariaDB isolada na porta `3307` e o schema `petsystem_v3`; nunca use `C:\xampp\mysql\data`.
+A demonstracao local usa SQLite em `backend/database/petsystem_demo.sqlite`, com ambiente `demo`. O MySQL sera configurado em uma etapa posterior; nao e necessario instalar nem iniciar banco MySQL para esta demonstracao.
 
+1. Dê dois cliques em `scripts\iniciar.bat`. O script verifica as ferramentas, instala dependencias ausentes, prepara somente o SQLite demo novo e inicia backend/frontend em janelas separadas.
+2. Acesse `http://127.0.0.1:5173` no navegador; o script tambem tenta abrir essa pagina automaticamente.
+3. Crie o usuario local escolhido com `scripts\criar-usuario.bat`. A senha e solicitada de forma interativa, fica oculta e nao existe senha padrao no repositorio.
+
+O sistema possui perfis `admin`, `receptionist` e `veterinarian`. A API aplica as permissoes no backend. O Veterinario nao recebe valores financeiros; a Recepcao nao recebe evolucao clinica.
+
+Para encerrar somente os servidores deste projeto, use `scripts\parar.bat`. O script de verificacao e `scripts\verificar.bat`.
 ## Testes disponíveis
 
 O repositório contém testes de API, autenticação, autorização por perfil, atendimentos, métricas do Dashboard e funções do frontend. Os comandos e o isolamento do banco estão documentados em [`docs/setup.md`](docs/setup.md).
