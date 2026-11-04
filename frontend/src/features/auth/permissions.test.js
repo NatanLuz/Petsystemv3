@@ -4,9 +4,9 @@ import { can } from './permissions.js';
 
 // Independent business matrix: view, create, update, delete.
 const expected = {
-  admin: { clients: '1111', pets: '1111', services: '1111', appointments: '1111' },
-  receptionist: { clients: '1111', pets: '1111', services: '1000', appointments: '1110' },
-  veterinarian: { clients: '1110', pets: '1110', services: '1000', appointments: '1110' },
+  admin: { clients: '1111', pets: '1111', services: '1111', appointments: '1111', attendances: '1111' },
+  receptionist: { clients: '1111', pets: '1111', services: '1000', appointments: '1110', attendances: '1110' },
+  veterinarian: { clients: '1110', pets: '1110', services: '1000', appointments: '1110', attendances: '1110' },
 };
 
 for (const [role, modules] of Object.entries(expected)) {
@@ -30,6 +30,12 @@ test('missing, inactive and unknown identities are denied for every capability',
       }
     }
   }
+});
+
+test('finance capability is limited to administrator and reception', () => {
+  assert.equal(can({ role: 'admin', active: true }, 'dashboard.finance.view'), true);
+  assert.equal(can({ role: 'receptionist', active: true }, 'dashboard.finance.view'), true);
+  assert.equal(can({ role: 'veterinarian', active: true }, 'dashboard.finance.view'), false);
 });
 
 test('unknown and inherited capabilities are denied even to admin', () => {

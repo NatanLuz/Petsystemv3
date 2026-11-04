@@ -1,51 +1,50 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { can } from "../auth/permissions";
+import { getClinicDateTime } from "../../pages/dashboardMetrics";
+import { formatCurrency } from "../../shared/formatters.js";
+import {
+  formatAppointmentDate,
+  toOperationalInput,
+  toOperationalPayload,
+} from "./appointmentDateTime";
 import { listPets } from "../pets/petService";
 import { listServices } from "../services/serviceService";
+import { filterAppointmentClients } from './appointmentSearch.js';
+
+export { formatAppointmentDate, toOperationalInput, toOperationalPayload };
 
 export const appointmentStatuses = {
   scheduled: { label: "Agendado", className: "badge badge-warning" },
   confirmed: { label: "Confirmado", className: "badge badge-success" },
+  in_progress: { label: "Em atendimento", className: "badge badge-info" },
+  completed: { label: "Concluído", className: "badge badge-success" },
   cancelled: { label: "Cancelado", className: "badge badge-danger" },
+  no_show: { label: "Faltou", className: "badge badge-danger" },
 };
 
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+const appointmentTransitions = {
+  scheduled: ["confirmed", "cancelled"],
+  confirmed: ["cancelled", "no_show"],
+  in_progress: [],
+  completed: [], cancelled: [], no_show: [],
+};
 
 export function formatAppointmentPrice(value) {
-  const price = Number(value);
-  return value !== null && value !== undefined && Number.isFinite(price)
-    ? currencyFormatter.format(price)
-    : "Não informado";
+  return formatCurrency(value);
 }
 
-export function toOperationalInput(value) {
-  const match = String(value ?? "").match(
-    /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?/,
-  );
-  return match ? `${match[1]}T${match[2]}:${match[3] ?? "00"}` : "";
-}
-
-export function toOperationalPayload(value) {
-  return toOperationalInput(value).replace("T", " ");
-}
-
-export function formatAppointmentDate(value) {
-  const operational = toOperationalInput(value);
-  if (!operational) return "Data indisponível";
-  const [date, time] = operational.split("T");
-  return `${date.split("-").reverse().join("/")} ${time.slice(0, 5)}`;
-}
-
-function getInitialFormData(appointment) {
+function getInitialFormData(appointment, defaultClientId = "", defaultPetId = "") {
   return {
-    pet_id: appointment?.pet_id ?? "",
+    client_id: appointment?.pet?.client_id ?? defaultClientId,
+    pet_id: appointment?.pet_id ?? defaultPetId,
     service_id: appointment?.service_id ?? "",
     scheduled_at: toOperationalInput(appointment?.scheduled_at),
     status: appointment?.status ?? "scheduled",
     notes: appointment?.notes ?? "",
+    cancellation_reason: appointment?.cancellation_reason ?? "",
+    reschedule_reason: appointment?.reschedule_reason ?? "",
   };
 }
 
@@ -56,12 +55,20 @@ export default function AppointmentForm({
   submitting = false,
   disabled = false,
   optionsRevision = 0,
+  fieldErrors = {},
 }) {
-  const [formData, setFormData] = useState(() =>
-    getInitialFormData(initialData),
-  );
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const canViewFinance = can(user, "dashboard.finance.view");
+  const isAdmin = user?.role === "admin";
+  const minimumScheduledAt = isAdmin ? undefined : getClinicDateTime().slice(0, 16).replace(" ", "T");
+  const defaultClientId = searchParams.get("client_id") ?? "";
+  const defaultPetId = searchParams.get("pet_id") ?? "";
+  const [formData, setFormData] = useState(() => getInitialFormData(initialData, defaultClientId, defaultPetId));
   const [pets, setPets] = useState([]);
   const [services, setServices] = useState([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false);
   const [loadingPets, setLoadingPets] = useState(true);
   const [loadingServices, setLoadingServices] = useState(true);
   const [petsError, setPetsError] = useState(null);
@@ -70,11 +77,14 @@ export default function AppointmentForm({
   const [retry, setRetry] = useState(0);
   const isEditing = initialData !== null;
   const busy = submitting || disabled;
+  const errorFor = (field) => fieldErrors[field]?.[0];
 
   useEffect(() => {
-    setFormData(getInitialFormData(initialData));
+    setFormData(getInitialFormData(initialData, defaultClientId, defaultPetId));
+    setClientSearch('');
+    setShowClientSuggestions(false);
     setValidationError(null);
-  }, [initialData]);
+  }, [initialData, defaultClientId, defaultPetId]);
 
   useEffect(() => {
     let active = true;
@@ -116,6 +126,15 @@ export default function AppointmentForm({
       service.active === true ||
       (isEditing && Number(service.id) === Number(initialData.service_id)),
   );
+  const availableClients = [...new Map(pets.filter((pet) => pet.client).map((pet) => [pet.client.id, pet.client])).values()];
+  const filteredClients = filterAppointmentClients(availableClients, clientSearch);
+  const eligiblePets = pets.filter((pet) => !formData.client_id || Number(pet.client_id) === Number(formData.client_id));
+
+  useEffect(() => {
+    if (!formData.client_id) return;
+    const selectedClient = availableClients.find((client) => Number(client.id) === Number(formData.client_id));
+    if (selectedClient) setClientSearch(selectedClient.name);
+  }, [pets, formData.client_id]);
   const selectedService = eligibleServices.find(
     (service) => Number(service.id) === Number(formData.service_id),
   );
@@ -127,12 +146,17 @@ export default function AppointmentForm({
     loadingServices ||
     !!petsError ||
     !!servicesError ||
-    pets.length === 0 ||
+    eligiblePets.length === 0 ||
     eligibleServices.length === 0;
+  const currentStatus = initialData?.status ?? "scheduled";
+  const allowedStatuses = new Set(isEditing
+    ? [currentStatus, ...(appointmentTransitions[currentStatus] ?? [])]
+    : ["scheduled"]);
+  const scheduleChanged = !!initialData && formData.scheduled_at !== toOperationalInput(initialData.scheduled_at);
 
   function handleChange(event) {
     const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
+    setFormData((current) => ({ ...current, [name]: value, ...(name === 'client_id' ? { pet_id: '' } : {}) }));
     setValidationError(null);
   }
 
@@ -144,7 +168,7 @@ export default function AppointmentForm({
     const scheduledAt = toOperationalPayload(formData.scheduled_at);
     if (
       !Number.isInteger(petId) ||
-      !pets.some((pet) => Number(pet.id) === petId) ||
+      !eligiblePets.some((pet) => Number(pet.id) === petId) ||
       !Number.isInteger(serviceId) ||
       !selectedService ||
       !scheduledAt ||
@@ -161,6 +185,8 @@ export default function AppointmentForm({
       scheduled_at: scheduledAt,
       status: formData.status,
       notes: formData.notes.trim() || null,
+      cancellation_reason: formData.cancellation_reason.trim() || null,
+      reschedule_reason: formData.reschedule_reason.trim() || null,
     });
   }
 
@@ -213,22 +239,49 @@ export default function AppointmentForm({
       )}
       <div className="client-form-grid">
         <label className="client-field">
+          <span>Cliente ou tutor</span>
+          <input type="search" role="combobox" aria-autocomplete="list"
+            aria-expanded={showClientSuggestions && filteredClients.length > 0}
+            aria-controls="appointment-client-options" aria-label="Buscar tutor por nome, telefone ou e-mail"
+            placeholder="Todos os clientes — digite para filtrar" value={clientSearch}
+            onFocus={() => setShowClientSuggestions(true)}
+            onChange={(event) => {
+              setClientSearch(event.target.value);
+              setFormData((current) => ({ ...current, client_id: '', pet_id: '' }));
+              setShowClientSuggestions(true);
+            }} disabled={busy || loadingPets || !!petsError} />
+          {showClientSuggestions && clientSearch.trim() && filteredClients.length > 0 && (
+            <ul id="appointment-client-options" className="client-autocomplete-options" role="listbox">
+              {filteredClients.slice(0, 8).map((client) => <li key={client.id} role="option" aria-selected={Number(formData.client_id) === Number(client.id)}>
+                <button type="button" onClick={() => {
+                  setFormData((current) => ({ ...current, client_id: client.id, pet_id: '' }));
+                  setClientSearch(client.name);
+                  setShowClientSuggestions(false);
+                }}>{client.name}{client.phone ? ` · ${client.phone}` : ''}</button>
+              </li>)}
+            </ul>
+          )}
+          <span className="client-field-hint">{formData.client_id ? 'Pets filtrados pelo tutor selecionado.' : 'Sem seleção, todos os pets ficam disponíveis.'}</span>
+        </label>
+        <label className="client-field">
           <span>Pet *</span>
           <select
             name="pet_id"
             value={formData.pet_id}
             onChange={handleChange}
             required
-            disabled={busy || loadingPets || !!petsError || pets.length === 0}
+            aria-invalid={!!errorFor("pet_id")}
+            disabled={busy || loadingPets || !!petsError || eligiblePets.length === 0}
           >
             <option value="">Selecione um pet</option>
-            {pets.map((pet) => (
+            {eligiblePets.map((pet) => (
               <option key={pet.id} value={pet.id}>
                 {pet.name} — {pet.client?.name || "Tutor indisponível"} —{" "}
                 {pet.public_code ?? "Código indisponível"}
               </option>
             ))}
           </select>
+          {errorFor("pet_id") && <span className="client-field-error" role="alert">{errorFor("pet_id")}</span>}
         </label>
         <label className="client-field">
           <span>Serviço *</span>
@@ -237,6 +290,7 @@ export default function AppointmentForm({
             value={formData.service_id}
             onChange={handleChange}
             required
+            aria-invalid={!!errorFor("service_id")}
             disabled={
               busy ||
               loadingServices ||
@@ -252,6 +306,7 @@ export default function AppointmentForm({
               </option>
             ))}
           </select>
+          {errorFor("service_id") && <span className="client-field-error" role="alert">{errorFor("service_id")}</span>}
         </label>
         <label className="client-field">
           <span>Data/Hora *</span>
@@ -260,10 +315,13 @@ export default function AppointmentForm({
             name="scheduled_at"
             step="1"
             value={formData.scheduled_at}
+            min={minimumScheduledAt}
             onChange={handleChange}
             required
+            aria-invalid={!!errorFor("scheduled_at")}
             disabled={busy}
           />
+          {errorFor("scheduled_at") && <span className="client-field-error" role="alert">{errorFor("scheduled_at")}</span>}
         </label>
         <label className="client-field">
           <span>Status *</span>
@@ -272,15 +330,31 @@ export default function AppointmentForm({
             value={formData.status}
             onChange={handleChange}
             required
+            aria-invalid={!!errorFor("status")}
             disabled={busy}
           >
-            {Object.entries(appointmentStatuses).map(([value, status]) => (
+            {Object.entries(appointmentStatuses).filter(([value]) => allowedStatuses.has(value)).map(([value, status]) => (
               <option key={value} value={value}>
                 {status.label}
               </option>
             ))}
           </select>
+          {errorFor("status") && <span className="client-field-error" role="alert">{errorFor("status")}</span>}
         </label>
+        {(formData.status === "cancelled" || formData.status === "no_show") && (
+          <label className="client-field">
+            <span>{formData.status === "no_show" ? "Motivo da falta *" : "Motivo do cancelamento *"}</span>
+            <textarea name="cancellation_reason" value={formData.cancellation_reason} onChange={handleChange} rows={2} maxLength={2000} required disabled={busy} />
+            {errorFor("cancellation_reason") && <span className="client-field-error" role="alert">{errorFor("cancellation_reason")}</span>}
+          </label>
+        )}
+        {scheduleChanged && (
+          <label className="client-field">
+            <span>Motivo do reagendamento *</span>
+            <textarea name="reschedule_reason" value={formData.reschedule_reason} onChange={handleChange} rows={2} maxLength={2000} required disabled={busy} />
+            {errorFor("reschedule_reason") && <span className="client-field-error" role="alert">{errorFor("reschedule_reason")}</span>}
+          </label>
+        )}
         <label className="client-field">
           <span>Observações</span>
           <textarea
@@ -292,7 +366,7 @@ export default function AppointmentForm({
           />
         </label>
       </div>
-      {snapshot && (
+      {snapshot && canViewFinance && (
         <div role="status">
           <p>
             {keepingService

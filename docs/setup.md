@@ -1,85 +1,46 @@
-# Guia prático de Configuração de Ambiente — PETSYSTEM V3
+# Configuração local — PetSystem V3
 
-Este documento instrui a preparação do ambiente de desenvolvimento local para o backend Laravel e frontend React.
+Este guia prepara a demonstração local no Windows. Ela usa SQLite; o MySQL será configurado em uma etapa futura. Não são necessários banco histórico nem credenciais padrão.
 
-## 🛠️ Requisitos de Software
+## Requisitos
 
-- **PHP**: 8.2 ou superior (com extensão `pdo_mysql` habilitada no `php.ini`)
-- **Composer**: 2.x
-- **Node.js**: 18+ (recomendado 20+)
-- **MySQL** rodando na porta 3306
-- **Git**
+- Windows e Git.
+- PHP 8.2 em `C:\xampp\php\php.exe`.
+- Composer no `PATH` se `backend\vendor\autoload.php` não existir.
+- `node.exe` e `npm.cmd` no `PATH` se `frontend\node_modules\.bin\vite.cmd` não existir.
 
----
+## Como rodar em 3 passos
 
-## ETAPA 1: Configuração do Backend (Laravel)
+1. Dê dois cliques em `scripts\iniciar.bat`. Ele pode ser chamado de qualquer diretório, inicia backend e frontend em janelas separadas, aguarda a API ficar pronta e abre o navegador.
+2. Acesse `http://127.0.0.1:5173`. O frontend consome a API em `http://127.0.0.1:8000/api`.
+3. Dê dois cliques em `scripts\criar-usuario.bat` e informe nome, e-mail, perfil e senha no terminal. A senha fica oculta e não há conta ou senha padrão.
 
-1. Entre no diretório do backend:
-   ```bash
-   cd backend
-   ```
-2. Instale as dependências do Composer:
-   ```bash
-   composer install
-   ```
-3. Configure o arquivo `.env`:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-4. Ajuste as credenciais do MySQL no `.env`:
-   ```env
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=petsystem_v3
-   DB_USERNAME=root
-   DB_PASSWORD=
-   ```
-5. Execute as migrations para criar as tabelas no MySQL:
-   ```bash
-   php artisan migrate
-   ```
-6. Inicie o servidor do backend:
-   ```bash
-   php artisan serve --port=8000
-   ```
-   A API ficará acessível em `http://127.0.0.1:8000/api`.
+O comando de criação aceita os perfis `admin`, `receptionist` e `veterinarian`, e só opera no ambiente demo com conexão SQLite.
 
----
+## Banco SQLite da demonstração
 
-## ETAPA 2: Configuração do Frontend (React + Vite)
+O ambiente usa `backend\.env.demo`, carregado com `php artisan --env=demo`, e persiste em `backend\database\petsystem_demo.sqlite`. Esses arquivos são locais e ignorados pelo Git.
 
-1. Entre no diretório do frontend:
-   ```bash
-   cd frontend
-   ```
-2. Instale as dependências do Node:
-   ```bash
-   npm install
-   ```
-3. Configure a URL da API:
-   ```bash
-   cp .env.example .env
-   ```
-   O valor local padrão é:
-   ```env
-   VITE_API_URL=http://127.0.0.1:8000/api
-   ```
-4. Inicie o servidor de desenvolvimento Vite:
-   ```bash
-   npm run dev
-   ```
-   A aplicação React estará acessível em `http://localhost:5173`.
+Na inicialização, `scripts\iniciar.bat` verifica ambiente e conexão sem mostrar credenciais. Se o arquivo SQLite ainda não existir, cria um arquivo vazio, aplica migrations nesse banco novo e executa `DemoDataSeeder`. Se o banco já existir, verifica o status e executa migrations somente quando houver pendências; não recria nem apaga o banco. O seeder usa dados fictícios.
 
----
+O script não inicia nem modifica MySQL/MariaDB. A instância MySQL será configurada depois, separadamente. O banco histórico não é usado pela demonstração.
 
-## 🔍 Teste de Integração Health Check
+## Perfis e privacidade
 
-Para confirmar que a comunicação entre React e Laravel está funcionando:
+As permissões são aplicadas pela API Laravel, além dos controles da interface.
 
-1. Com o backend rodando na porta 8000, verifique se a aplicação está viva:
-   `GET http://127.0.0.1:8000/api/health/live`
-2. Verifique se a aplicação está pronta e conectada ao MySQL:
-   `GET http://127.0.0.1:8000/api/health/ready`
-3. No frontend, navegue até a tela de verificação de status para observar o consumo da API via Axios em tempo real.
+- `admin`: operações administrativas permitidas pela API, incluindo informações financeiras e clínicas.
+- `receptionist`: rotina de cadastros, agenda e atendimento conforme as regras do backend; pode consultar dados financeiros, mas não recebe evolução clínica.
+- `veterinarian`: rotina de pacientes e atendimento clínico conforme as regras do backend; não recebe preços, valores cobrados nem outros dados financeiros.
+
+Não há senha predefinida. Para criar uma conta local, use `scripts\criar-usuario.bat`; o e-mail precisa ser único.
+
+## Verificação
+
+Dê dois cliques em `scripts\verificar.bat`. Antes dos testes PHP, o script interrompe se detectar `backend\bootstrap\cache\config.php` ou `backend\.env.testing` e define explicitamente o ambiente de testes com SQLite em memória (`DB_DATABASE=:memory:`), separado do SQLite persistente da demonstração.
+
+O script executa `php artisan test`, `node.exe --test` e `npm.cmd run verify` (testes frontend e build Vite). Mostra uma linha por etapa e, em caso de falha, apenas as últimas linhas do log temporário. O resultado final é `TUDO OK` ou `FALHOU em: ...`.
+
+## Encerrar
+
+Use `scripts\parar.bat`. Ele consulta os listeners nas portas 8000 e 5173 e encerra somente um processo cuja linha de comando identifica esta cópia do PetSystem demo. Processos não identificados são ignorados.

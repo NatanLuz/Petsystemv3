@@ -25,8 +25,7 @@ class PetController extends Controller
 
     public function show(Pet $pet)
     {
-        $pet->load('client');
-
+        $pet->load(['client', 'appointments.service', 'attendances.services']);
         return response()->json($pet, 200);
     }
 
@@ -41,9 +40,9 @@ class PetController extends Controller
 
     public function destroy(Pet $pet)
     {
-        if ($pet->appointments()->exists()) {
+        if ($pet->appointments()->exists() || $pet->attendances()->exists()) {
             return response()->json([
-                'message' => 'Não é possível excluir um pet que possui agendamentos cadastrados.',
+                'message' => 'Não é possível excluir um pet que possui agendamentos ou atendimentos cadastrados.',
             ], 409);
         }
 

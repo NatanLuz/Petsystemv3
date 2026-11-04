@@ -1,5 +1,7 @@
 # Environment files
 .env
+.env.*
+!**/.env.example
 .env.local
 .env.*.local
 *.env
@@ -17,6 +19,13 @@ vendor/
 /backend/storage/framework/views/*
 /backend/storage/logs/*
 /backend/bootstrap/cache/*
+
+# Local databases, runtime logs, and PHPUnit cache
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.log
+.phpunit.result.cache
 
 # Frontend specific
 /frontend/dist/

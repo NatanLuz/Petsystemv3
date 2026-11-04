@@ -3,15 +3,13 @@ import { Link } from 'react-router-dom';
 
 export default function NotFoundPage() {
   return (
-    <div className="card-glass" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-      <h1 style={{ fontSize: '4rem', color: 'var(--accent-danger)', marginBottom: '1rem' }}>404</h1>
-      <h2>Página Não Encontrada</h2>
-      <p style={{ color: 'var(--text-muted)', margin: '1rem 0 2rem' }}>
-        A rota solicitada não existe no React Router.
-      </p>
+    <section className="clients-panel not-found-page" aria-labelledby="not-found-title">
+      <h1>404</h1>
+      <h2 id="not-found-title">Página não encontrada</h2>
+      <p>O endereço não está disponível. Você pode voltar ao painel inicial.</p>
       <Link to="/" className="btn btn-primary">
-        Voltar para o Início
+        Ir para o início
       </Link>
-    </div>
+    </section>
   );
 }

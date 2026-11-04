@@ -19,7 +19,11 @@ class Pet extends Model
         'sex',
         'birth_date',
         'weight',
+        'size',
+        'color',
         'notes',
+        'allergies',
+        'behavior_alerts',
     ];
 
     protected static function booted(): void
@@ -47,5 +51,10 @@ class Pet extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
     }
 }

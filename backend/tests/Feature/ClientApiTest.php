@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Client;
+use App\Models\Appointment;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,6 +50,24 @@ class ClientApiTest extends TestCase
         $this->assertDatabaseCount('clients', 0);
     }
 
+    public function test_it_normalizes_client_contacts_and_rejects_duplicate_phone_or_email(): void
+    {
+        $existing = $this->createClient();
+
+        $this->postJson('/api/clients', [
+            'name' => 'Outro Tutor',
+            'phone' => '(11) 98888-7777',
+            'email' => strtoupper($existing->email),
+        ])->assertUnprocessable()->assertJsonValidationErrors(['phone', 'email']);
+
+        $this->postJson('/api/clients', [
+            'name' => 'Novo Tutor',
+            'phone' => '(11) 97777-6666',
+            'email' => '  NOVO@EXAMPLE.COM ',
+        ])->assertCreated()->assertJsonPath('phone', '11977776666')
+            ->assertJsonPath('email', 'novo@example.com');
+    }
+
     public function test_it_lists_registered_clients(): void
     {
         $firstClient = $this->createClient([
@@ -85,6 +105,39 @@ class ClientApiTest extends TestCase
             ]);
     }
 
+    public function test_client_detail_includes_pets_and_their_recent_appointments(): void
+    {
+        $client = $this->createClient();
+        $pet = $client->pets()->create(['name' => 'Rex', 'species' => 'Cachorro']);
+        $service = Service::create(['name' => 'Consulta', 'price' => 100, 'duration_minutes' => 30]);
+        $pet->appointments()->create([
+            'service_id' => $service->id,
+            'scheduled_at' => '2026-10-13 10:00:00',
+            'price' => 100,
+            'duration_minutes' => 30,
+            'status' => Appointment::STATUS_CONFIRMED,
+        ]);
+
+        $this->actingAs(User::factory()->active()->create(['role' => User::ROLE_VETERINARIAN]), 'web')
+            ->getJson("/api/clients/{$client->id}")
+            ->assertOk()
+            ->assertJsonPath('pets.0.name', 'Rex')
+            ->assertJsonPath('pets.0.appointments.0.service.name', 'Consulta');
+    }
+
+    public function test_client_cannot_reuse_another_clients_phone_or_email_on_update(): void
+    {
+        $client = $this->createClient();
+        $other = $this->createClient(['name' => 'Outro', 'email' => 'outro@example.com', 'phone' => '11977776666']);
+
+        $this->patchJson("/api/clients/{$client->id}", [
+            'phone' => $other->phone,
+            'email' => $other->email,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['phone', 'email']);
+
+        $this->assertDatabaseHas('clients', ['id' => $client->id, 'phone' => '11988887777']);
+    }
+
     public function test_it_partially_updates_an_existing_client(): void
     {
         $client = $this->createClient();
@@ -102,6 +155,21 @@ class ClientApiTest extends TestCase
             'id' => $client->id,
             'name' => 'Ana Souza Atualizada',
             'phone' => $client->phone,
+        ]);
+    }
+
+    public function test_it_rejects_invalid_client_fields_on_update_without_changing_the_record(): void
+    {
+        $client = $this->createClient();
+
+        $this->patchJson("/api/clients/{$client->id}", [
+            'email' => 'not-an-email',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertDatabaseHas('clients', [
+            'id' => $client->id,
+            'email' => $client->email,
         ]);
     }
 

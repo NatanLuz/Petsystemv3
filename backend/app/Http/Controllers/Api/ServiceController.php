@@ -11,7 +11,7 @@ class ServiceController extends Controller
 {
     public function index()
     {
-        return response()->json(Service::all());
+        return response()->json(Service::withCount(['appointments', 'attendances'])->get());
     }
 
     public function store(StoreServiceRequest $request)
@@ -35,10 +35,13 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
-        if ($service->appointments()->exists()) {
+        if ($service->appointments()->exists() || $service->attendances()->exists()) {
+            $service->update(['active' => false]);
+
             return response()->json([
-                'message' => 'Não é possível excluir um serviço que possui agendamentos cadastrados.',
-            ], 409);
+                'message' => 'O serviço possui histórico e foi desativado. Os agendamentos existentes foram preservados.',
+                'service' => $service,
+            ]);
         }
 
         $service->delete();

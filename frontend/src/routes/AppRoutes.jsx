@@ -1,17 +1,37 @@
-import React from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import LoginPage from '../features/auth/LoginPage';
 import ProtectedRoute from './ProtectedRoute';
 import ClientsPage from '../features/clients/ClientsPage';
+import ClientDetailPage from '../features/clients/ClientDetailPage';
 import PetsPage from '../features/pets/PetsPage';
+import PetDetailPage from '../features/pets/PetDetailPage';
 import ServicesPage from '../features/services/ServicesPage';
 import AppointmentsPage from '../features/appointments/AppointmentsPage';
+import AttendancesPage from '../features/attendances/AttendancesPage';
 import MainLayout from '../layouts/MainLayout';
 import HomePage from '../pages/HomePage';
 import HealthPage from '../pages/HealthPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 export default function AppRoutes() {
+  const location = useLocation();
+  useEffect(() => {
+    const path = location.pathname;
+    const title = path === '/login' ? 'Entrar'
+      : path === '/' ? 'Dashboard'
+        : path === '/health' ? 'Status da API'
+          : path === '/clients' ? 'Clientes'
+            : /^\/clients\/[^/]+$/.test(path) ? 'Ficha do cliente'
+              : path === '/pets' ? 'Pets'
+                : /^\/pets\/[^/]+$/.test(path) ? 'Ficha do pet'
+                  : path === '/services' ? 'Serviços'
+                    : path === '/appointments' ? 'Agendamentos'
+                      : path === '/attendances' ? 'Atendimentos'
+                        : 'Página não encontrada';
+    document.title = `${title} | PetSystem V3`;
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -19,9 +39,12 @@ export default function AppRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/clients" element={<ClientsPage />} />
+        <Route path="/clients/:id" element={<ClientDetailPage />} />
         <Route path="/pets" element={<PetsPage />} />
+        <Route path="/pets/:id" element={<PetDetailPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
+        <Route path="/attendances" element={<AttendancesPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

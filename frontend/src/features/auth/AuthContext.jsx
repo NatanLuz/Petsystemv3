@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { authErrorMessage, getCurrentUser, initializeCsrf, loginUser, logoutUser } from './authService';
+import { isSessionScopedApiRequest } from './sessionRequests.js';
 import api from '../../services/api';
 
 const AuthContext = createContext(null);
@@ -58,7 +59,7 @@ export function AuthProvider({ children }) {
 
     const requestInterceptor = api.interceptors.request.use((config) => {
       // Only the four resource services participate; auth and health are excluded.
-      if (/^\/?(clients|pets|services|appointments)(?:\/|\?|$)/.test(config.url || '')) {
+      if (isSessionScopedApiRequest(config.url)) {
         config.sessionGeneration = sessionGeneration.current;
       }
       return config;

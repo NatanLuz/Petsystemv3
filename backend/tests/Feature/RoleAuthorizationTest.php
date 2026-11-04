@@ -61,7 +61,7 @@ class RoleAuthorizationTest extends TestCase
         if ($resource === 'pets') return [$pet, ['client_id' => $client->id, 'name' => 'Luna', 'species' => 'Gato']];
         $payload = ['pet_id' => $pet->id, 'service_id' => $service->id, 'scheduled_at' => '2026-10-10 14:00:00'];
         $appointment = Appointment::create($payload + ['price' => '50.00', 'duration_minutes' => 30, 'status' => 'scheduled']);
-        return [$appointment, $payload + ['notes' => 'Novo agendamento']];
+        return [$appointment, ['pet_id' => $pet->id, 'service_id' => $service->id, 'scheduled_at' => now('America/Sao_Paulo')->addDays(2)->setTime(15, 0)->format('Y-m-d H:i:s'), 'notes' => 'Novo agendamento']];
     }
 
     private function snapshot(): array
@@ -87,7 +87,9 @@ class RoleAuthorizationTest extends TestCase
         };
         $path = '/api/'.$resource.(in_array($action, ['index', 'create'], true) ? '' : '/'.$record->id);
         if (in_array($action, ['patch', 'put'], true)) {
-            $payload = $resource === 'appointments' ? ['status' => 'cancelled'] : ['name' => 'Atualizado'];
+            $payload = $resource === 'appointments'
+                ? ['status' => 'cancelled', 'cancellation_reason' => 'Teste de autorização']
+                : ['name' => 'Atualizado'];
         }
         // Client-supplied authority must never grant an otherwise denied operation.
         $response = $this->json($method, $path, $payload + ['role' => 'admin', 'user_id' => 999, 'active' => true]);

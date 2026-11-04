@@ -1,7 +1,12 @@
 import { useAuth } from "../auth/AuthContext";
 import { can } from "../auth/permissions";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useDebouncedValue } from "../useDebouncedValue";
+import { formatCurrency } from "../../shared/formatters.js";
+import { EmptyState, ErrorState, LoadingSkeleton, Toast, useConfirmDialog } from "../../components/feedback/Feedback";
+import { getPageSlice, DEFAULT_PAGE_SIZE } from "../listPagination";
 import ServiceForm from "./ServiceForm";
+import { filterServices } from "./serviceSearch";
 import {
   createService,
   deleteService,
@@ -17,52 +22,41 @@ const fieldLabels = {
   active: "Status",
 };
 
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
 function formatPrice(price) {
-  const numericPrice = Number(price);
-
-  return Number.isFinite(numericPrice)
-    ? currencyFormatter.format(numericPrice)
-    : "Não informado";
+  return formatCurrency(price);
 }
 
 export default function ServicesPage() {
   const { user } = useAuth();
+  const { confirm, dialog } = useConfirmDialog();
   const canCreate = can(user, "services.create");
   const canUpdate = can(user, "services.update");
   const canDelete = can(user, "services.delete");
+  const canViewFinance = can(user, "dashboard.finance.view");
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [editingService, setEditingService] = useState(null);
   const [deletingServiceId, setDeletingServiceId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(searchTerm);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loadRevision, setLoadRevision] = useState(0);
   const operationPending = useRef(false);
   const busy = submitting || deletingServiceId !== null;
 
-  const filteredServices = useMemo(() => {
-    const search = searchTerm.trim().toLowerCase();
-
-    if (!search) {
-      return services;
-    }
-
-    return services.filter((service) =>
-      [service.name, service.description].some((value) =>
-        String(value ?? "").toLowerCase().includes(search),
-      ),
-    );
-  }, [services, searchTerm]);
+  const filteredServices = useMemo(
+    () => filterServices(services, debouncedSearch),
+    [services, debouncedSearch],
+  );
+  const servicePage = getPageSlice(filteredServices, page);
 
   useEffect(() => {
     let active = true;
@@ -92,12 +86,13 @@ export default function ServicesPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadRevision]);
 
   function clearOperationMessages() {
     setSuccessMessage(null);
     setSubmitError(null);
     setDeleteError(null);
+    setFieldErrors({});
   }
 
   function openForm(service = null) {
@@ -156,6 +151,7 @@ export default function ServicesPage() {
         setSubmitError(null);
       } else if (requestError.response?.status === 422) {
         const errors = requestError.response.data?.errors;
+        setFieldErrors(errors || {});
         const fields = Object.keys(fieldLabels)
           .filter((field) => errors?.[field])
           .map((field) => fieldLabels[field]);
@@ -184,26 +180,33 @@ export default function ServicesPage() {
       return;
     }
 
-    if (!window.confirm(`Deseja realmente excluir o serviço ${service.name}?`)) {
-      return;
-    }
+    const hasHistory = Number(service.appointments_count || 0) + Number(service.attendances_count || 0) > 0;
+    const actionText = hasHistory ? "desativar" : "excluir";
+    if (!(await confirm({
+      title: `${hasHistory ? 'Desativar' : 'Excluir'} serviço?`,
+      message: `Deseja ${actionText} o serviço ${service.name}?${hasHistory ? ' Os agendamentos existentes serão preservados.' : ' Esta ação não pode ser desfeita.'}`,
+      confirmLabel: hasHistory ? 'Desativar serviço' : 'Excluir serviço',
+    }))) return;
 
     operationPending.current = true;
     setDeletingServiceId(service.id);
     clearOperationMessages();
 
     try {
-      await deleteService(service.id);
-      setServices((currentServices) =>
-        currentServices.filter((item) => item.id !== service.id),
-      );
+      const result = await deleteService(service.id);
+      if (result?.service) {
+        setServices((currentServices) => currentServices.map((item) =>
+          item.id === service.id ? { ...result.service, appointments_count: service.appointments_count, attendances_count: service.attendances_count } : item));
+      } else {
+        setServices((currentServices) => currentServices.filter((item) => item.id !== service.id));
+      }
 
       if (editingService?.id === service.id) {
         setEditingService(null);
         setIsFormOpen(false);
       }
 
-      setSuccessMessage("Serviço excluído com sucesso.");
+      setSuccessMessage(result?.service ? "Serviço desativado; o histórico foi preservado." : "Serviço excluído com sucesso.");
     } catch (requestError) {
       if (requestError.response?.status === 403) return;
       setDeleteError(
@@ -217,6 +220,7 @@ export default function ServicesPage() {
 
   return (
     <section className="clients-page">
+      {dialog}
       <header className="clients-header">
         <div>
           <p>Cadastre e gerencie os serviços oferecidos pelo PetSystem.</p>
@@ -232,16 +236,13 @@ export default function ServicesPage() {
         </button>)}
       </header>
 
-      {successMessage && (
-        <div className="clients-feedback clients-feedback-success" role="status">
-          {successMessage}
-        </div>
-      )}
+      <Toast message={successMessage} />
 
       {isFormOpen && (
         <ServiceForm
           key={formKey}
           initialData={editingService}
+          fieldErrors={fieldErrors}
           onSubmit={handleSubmitService}
           onCancel={handleCancelForm}
           submitting={submitting}
@@ -249,17 +250,9 @@ export default function ServicesPage() {
         />
       )}
 
-      {submitError && (
-        <div className="clients-feedback clients-feedback-error" role="alert">
-          {submitError}
-        </div>
-      )}
+      {submitError && <Toast message={submitError} tone="error" />}
 
-      {deleteError && (
-        <div className="clients-feedback clients-feedback-error" role="alert">
-          {deleteError}
-        </div>
-      )}
+      {deleteError && <Toast message={deleteError} tone="error" />}
 
       <section className="clients-panel">
         <div className="clients-toolbar">
@@ -272,52 +265,42 @@ export default function ServicesPage() {
             type="search"
             placeholder="Buscar por nome ou descrição..."
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }}
           />
         </div>
 
-        {loading && (
-          <div className="clients-state" role="status">
-            Carregando serviços...
-          </div>
-        )}
+        {loading && <LoadingSkeleton label="Carregando serviços..." />}
 
-        {!loading && error && (
-          <div className="clients-state clients-state-error" role="alert">
-            {error}
-          </div>
-        )}
+        {!loading && error && <ErrorState message={error} onRetry={() => { setLoading(true); setError(null); setLoadRevision((value) => value + 1); }} />}
 
         {!loading && !error && services.length === 0 && (
-          <div className="clients-state">Nenhum serviço cadastrado.</div>
+          <EmptyState message="Nenhum serviço cadastrado." actionLabel={canCreate ? 'Cadastrar serviço' : undefined} onAction={canCreate ? () => openForm() : undefined} />
         )}
 
         {!loading &&
           !error &&
           services.length > 0 &&
           filteredServices.length === 0 && (
-            <div className="clients-state">
-              Nenhum serviço encontrado para esta busca.
-            </div>
+            <EmptyState message="Nenhum serviço encontrado para esta busca." />
           )}
 
         {!loading && !error && filteredServices.length > 0 && (
-          <div className="clients-table-wrapper">
+          <div className="clients-table-wrapper" role="region" aria-label="Tabela de serviços" tabIndex={0}>
             <table className="clients-table">
               <thead>
                 <tr>
                   <th>Nome</th>
-                  <th>Preço</th>
+                  {canViewFinance && <th>Preço</th>}
                   <th>Duração</th>
                   <th>Status</th>
                   {(canUpdate || canDelete) && (<th>Ações</th>)}
                 </tr>
               </thead>
               <tbody>
-                {filteredServices.map((service) => (
+                {servicePage.items.map((service) => (
                   <tr key={service.id}>
                     <td>{service.name}</td>
-                    <td>{formatPrice(service.price)}</td>
+                    {canViewFinance && <td>{formatPrice(service.price)}</td>}
                     <td>{service.duration_minutes} min</td>
                     <td>
                       <span
@@ -347,8 +330,8 @@ export default function ServicesPage() {
                           disabled={busy}
                         >
                           {deletingServiceId === service.id
-                            ? "Excluindo..."
-                            : "Excluir"}
+                            ? "Salvando..."
+                            : Number(service.appointments_count || 0) + Number(service.attendances_count || 0) > 0 ? "Desativar" : "Excluir"}
                         </button>)}
                       </div>
                     </td>)}
@@ -358,6 +341,7 @@ export default function ServicesPage() {
             </table>
           </div>
         )}
+        {!loading && !error && filteredServices.length > DEFAULT_PAGE_SIZE && <nav className="clients-pagination" aria-label="Paginação de serviços"><span>Mostrando {servicePage.firstItem}–{servicePage.lastItem} de {servicePage.total}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={servicePage.page === 1}>Anterior</button><span>Página {servicePage.page} de {servicePage.pageCount}</span><button type="button" className="btn btn-secondary" onClick={() => setPage((current) => Math.min(servicePage.pageCount, current + 1))} disabled={servicePage.page === servicePage.pageCount}>Próxima</button></nav>}
       </section>
     </section>
   );

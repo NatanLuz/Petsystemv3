@@ -84,7 +84,8 @@ class ProtectedApiTest extends TestCase
             $service = Service::create($servicePayload + ['active' => true])->toArray();
         }
         $appointment = $this->postJson('/api/appointments', [
-            'pet_id' => $pet['id'], 'service_id' => $service['id'], 'scheduled_at' => '2026-10-01 14:00:00',
+            'pet_id' => $pet['id'], 'service_id' => $service['id'],
+            'scheduled_at' => now('America/Sao_Paulo')->addDay()->setTime(14, 0)->format('Y-m-d H:i:s'),
         ])->assertCreated()->json();
 
         $records = ['clients' => $client, 'pets' => $pet, 'services' => $service, 'appointments' => $appointment];
