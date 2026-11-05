@@ -29,7 +29,7 @@ Aplicação web para apoiar a rotina de uma clínica veterinária, com API Larav
 
 A demonstração usa `backend\.env.demo` e `backend\database\petsystem_demo.sqlite`. Os perfis são `admin`, `receptionist` e `veterinarian`. O Veterinário não recebe valores financeiros e a Recepção não recebe evolução clínica. Para parar os servidores do projeto, use `scripts\parar.bat`.
 
-## Testes e verificação
+## Testes e Verificação
 
 Dê dois cliques em `scripts\verificar.bat` para executar PHPUnit em SQLite em memória, os testes `node:test` e o build de produção do Vite. O script apresenta `TUDO OK` ou identifica a etapa que falhou.
 
