@@ -5,6 +5,7 @@ set "BACKEND=%ROOT%\backend"
 set "FRONTEND=%ROOT%\frontend"
 set "PHP=C:\xampp\php\php.exe"
 set "DATABASE=%BACKEND%\database\petsystem_demo.sqlite"
+set "DATABASE_NORMALIZED=%DATABASE:\=/%"
 
 if not exist "%PHP%" (
   echo ERRO: PHP nao encontrado em C:\xampp\php\php.exe.
@@ -38,7 +39,7 @@ pushd "%BACKEND%"
 if errorlevel 1 (popd & echo ERRO: Laravel nao reconheceu APP_ENV=demo. & exit /b 1)
 "%PHP%" artisan --env=demo config:show database.default | findstr /I /C:"sqlite" >nul
 if errorlevel 1 (popd & echo ERRO: a conexao efetiva nao e SQLite. Nenhum banco foi alterado. & exit /b 1)
-"%PHP%" artisan --env=demo config:show database.connections.sqlite.database | findstr /I /C:"%DATABASE%" >nul
+"%PHP%" artisan --env=demo config:show database.connections.sqlite.database | findstr /I /C:"%DATABASE_NORMALIZED%" >nul
 if errorlevel 1 (popd & echo ERRO: o SQLite efetivo nao e o banco petsystem_demo esperado. & exit /b 1)
 
 set "NEW_DATABASE=0"
