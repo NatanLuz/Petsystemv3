@@ -2,11 +2,16 @@ import { useMemo, useState } from 'react';
 import { deleteClient } from './clientService';
 import { ClientForm } from './ClientForm';
 import { useClients } from './useClients';
-import type { ClientFilters, ClientStatus } from './types';
+import type { Client, ClientFilters, ClientStatus } from './types';
 
 export function ClientsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ClientStatus | ''>('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [deletingClientId, setDeletingClientId] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const filters = useMemo<ClientFilters>(
     () => ({
@@ -25,29 +30,83 @@ export function ClientsPage() {
       return;
     }
 
-    await deleteClient(id);
+    try {
+      setDeletingClientId(id);
+      setFeedback(null);
+      setDeleteError(null);
+      await deleteClient(id);
+      await reload();
+      setFeedback('Cliente excluido com sucesso.');
+      if (editingClient?.id === id) {
+        handleCloseForm();
+      }
+    } catch {
+      setDeleteError('Nao foi possivel remover o cliente.');
+    } finally {
+      setDeletingClientId(null);
+    }
+  }
+
+  function handleNewClient() {
+    setFeedback(null);
+    setDeleteError(null);
+    setEditingClient(null);
+    setIsFormVisible((current) => !current);
+  }
+
+  function handleEdit(client: Client) {
+    setFeedback(null);
+    setDeleteError(null);
+    setEditingClient(client);
+    setIsFormVisible(true);
+  }
+
+  function handleCloseForm() {
+    setEditingClient(null);
+    setIsFormVisible(false);
+  }
+
+  async function handleSaved(action: 'created' | 'updated') {
     await reload();
+    setEditingClient(null);
+    setIsFormVisible(false);
+    setFeedback(
+      action === 'created'
+        ? 'Cliente cadastrado com sucesso.'
+        : 'Cliente atualizado com sucesso.',
+    );
   }
 
   return (
-    <main className="page">
-      <section className="page-header">
+    <main className="page clients-page">
+      <section className="page-header clients-header">
         <div>
-          <span className="eyebrow">Modulo de Clientes</span>
-          <h1>Clientes</h1>
-          <p>Cadastre, consulte e mantenha os tutores atendidos pelo PetSystem.</p>
+          <h1>Gerenciar Clientes</h1>
+          <p>Cadastre e gerencie os clientes do PetSystem.</p>
         </div>
+        <button className="primary-button" type="button" onClick={handleNewClient}>
+          Novo Cliente
+        </button>
       </section>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Novo cliente</h2>
-            <p>Dados principais para contato e identificacao do tutor.</p>
+      {feedback && <p className="feedback success">{feedback}</p>}
+      {deleteError && <p className="feedback error">{deleteError}</p>}
+
+      {isFormVisible && (
+        <section className="panel clients-form-panel">
+          <div className="panel-header">
+            <div>
+              <h2>{editingClient ? 'Editar cliente' : 'Novo cliente'}</h2>
+              <p>
+                {editingClient
+                  ? 'Atualize os dados principais do cliente.'
+                  : 'Informe os dados principais para cadastrar um cliente.'}
+              </p>
+            </div>
           </div>
-        </div>
-        <ClientForm onCreated={reload} />
-      </section>
+          <ClientForm client={editingClient} onCancel={handleCloseForm} onSaved={handleSaved} />
+        </section>
+      )}
 
       <section className="panel">
         <div className="panel-header">
@@ -59,7 +118,7 @@ export function ClientsPage() {
 
         <div className="filters">
           <input
-            placeholder="Buscar por nome, telefone, e-mail ou documento"
+            placeholder="Buscar por nome, telefone ou e-mail"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -85,9 +144,9 @@ export function ClientsPage() {
               <thead>
                 <tr>
                   <th>Nome</th>
-                  <th>Telefone</th>
                   <th>E-mail</th>
-                  <th>Status</th>
+                  <th>Telefone</th>
+                  <th>Endereco</th>
                   <th>Acoes</th>
                 </tr>
               </thead>
@@ -95,16 +154,24 @@ export function ClientsPage() {
                 {clients.map((client) => (
                   <tr key={client.id}>
                     <td>{client.name}</td>
-                    <td>{client.phone}</td>
                     <td>{client.email ?? '-'}</td>
-                    <td>
-                      <span className={`badge ${client.status}`}>
-                        {client.status === 'active' ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </td>
-                    <td>
-                      <button className="ghost-button" onClick={() => void handleDelete(client.id)}>
-                        Remover
+                    <td>{client.phone}</td>
+                    <td>{client.address ?? '-'}</td>
+                    <td className="table-actions">
+                      <button
+                        className="edit-button"
+                        type="button"
+                        onClick={() => handleEdit(client)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="delete-button"
+                        disabled={deletingClientId === client.id}
+                        type="button"
+                        onClick={() => void handleDelete(client.id)}
+                      >
+                        {deletingClientId === client.id ? 'Excluindo...' : 'Excluir'}
                       </button>
                     </td>
                   </tr>

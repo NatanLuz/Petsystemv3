@@ -1,25 +1,43 @@
-import { FormEvent, useState } from 'react';
-import { createClient } from './clientService';
-import type { ClientPayload, ClientStatus } from './types';
+import { FormEvent, useEffect, useState } from 'react';
+import { createClient, updateClient } from './clientService';
+import type { Client, ClientPayload } from './types';
 
-const initialPayload: ClientPayload = {
+type VisibleClientPayload = Pick<ClientPayload, 'name' | 'email' | 'phone' | 'address'>;
+
+const initialPayload: VisibleClientPayload = {
   name: '',
   email: '',
   phone: '',
-  document: '',
   address: '',
-  status: 'active',
-  notes: '',
 };
 
 type ClientFormProps = {
-  onCreated: () => void;
+  client?: Client | null;
+  onCancel: () => void;
+  onSaved: (action: 'created' | 'updated') => Promise<void> | void;
 };
 
-export function ClientForm({ onCreated }: ClientFormProps) {
-  const [payload, setPayload] = useState<ClientPayload>(initialPayload);
+export function ClientForm({ client, onCancel, onSaved }: ClientFormProps) {
+  const [payload, setPayload] = useState<VisibleClientPayload>(initialPayload);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isEditing = Boolean(client);
+
+  useEffect(() => {
+    if (client) {
+      setPayload({
+        name: client.name,
+        email: client.email ?? '',
+        phone: client.phone,
+        address: client.address ?? '',
+      });
+      setError(null);
+      return;
+    }
+
+    setPayload(initialPayload);
+    setError(null);
+  }, [client]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,11 +45,20 @@ export function ClientForm({ onCreated }: ClientFormProps) {
     try {
       setIsSaving(true);
       setError(null);
-      await createClient(payload);
-      setPayload(initialPayload);
-      onCreated();
+      if (client) {
+        await updateClient(client.id, payload as ClientPayload);
+        await onSaved('updated');
+      } else {
+        await createClient(payload as ClientPayload);
+        setPayload(initialPayload);
+        await onSaved('created');
+      }
     } catch {
-      setError('Nao foi possivel cadastrar o cliente.');
+      setError(
+        isEditing
+          ? 'Nao foi possivel salvar as alteracoes do cliente.'
+          : 'Nao foi possivel cadastrar o cliente.',
+      );
     } finally {
       setIsSaving(false);
     }
@@ -41,20 +68,11 @@ export function ClientForm({ onCreated }: ClientFormProps) {
     <form className="client-form" onSubmit={handleSubmit}>
       <div className="form-grid">
         <label>
-          Nome
+          Nome *
           <input
             required
             value={payload.name}
             onChange={(event) => setPayload({ ...payload, name: event.target.value })}
-          />
-        </label>
-
-        <label>
-          Telefone
-          <input
-            required
-            value={payload.phone}
-            onChange={(event) => setPayload({ ...payload, phone: event.target.value })}
           />
         </label>
 
@@ -68,24 +86,12 @@ export function ClientForm({ onCreated }: ClientFormProps) {
         </label>
 
         <label>
-          Documento
+          Telefone *
           <input
-            value={payload.document}
-            onChange={(event) => setPayload({ ...payload, document: event.target.value })}
+            required
+            value={payload.phone}
+            onChange={(event) => setPayload({ ...payload, phone: event.target.value })}
           />
-        </label>
-
-        <label>
-          Status
-          <select
-            value={payload.status}
-            onChange={(event) =>
-              setPayload({ ...payload, status: event.target.value as ClientStatus })
-            }
-          >
-            <option value="active">Ativo</option>
-            <option value="inactive">Inativo</option>
-          </select>
         </label>
 
         <label>
@@ -97,19 +103,16 @@ export function ClientForm({ onCreated }: ClientFormProps) {
         </label>
       </div>
 
-      <label>
-        Observacoes
-        <textarea
-          value={payload.notes}
-          onChange={(event) => setPayload({ ...payload, notes: event.target.value })}
-        />
-      </label>
-
       {error && <p className="form-error">{error}</p>}
 
-      <button className="primary-button" disabled={isSaving} type="submit">
-        {isSaving ? 'Salvando...' : 'Cadastrar cliente'}
-      </button>
+      <div className="form-actions">
+        <button className="primary-button" disabled={isSaving} type="submit">
+          {isSaving ? 'Salvando...' : isEditing ? 'Salvar Alteracoes' : 'Salvar Cliente'}
+        </button>
+        <button className="secondary-button" disabled={isSaving} type="button" onClick={onCancel}>
+          Cancelar
+        </button>
+      </div>
     </form>
   );
 }
