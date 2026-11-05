@@ -16,12 +16,12 @@ Aplicação web para apoiar a rotina de uma clínica veterinária, com API Larav
 
 ## Stack
 
-- Backend: PHP 8.2+, Laravel 12 e Laravel Sanctum.
-- Frontend: React 18, React Router, Axios e Vite.
+- Backend: PHP , Laravel 12+ e Laravel.
+- Frontend: React e Vite.
 - Demonstração local: SQLite. A configuração MySQL é uma etapa futura.
 - Testes: PHPUnit no backend e `node:test` no frontend.
 
-## Como Executar localmente
+## Como Executar Localmente
 
 1. Dê dois cliques em `scripts\iniciar.bat`. O script prepara o ambiente demo e abre backend e frontend em janelas separadas.
 2. Acesse `http://127.0.0.1:5173` no navegador.
@@ -33,12 +33,6 @@ A demonstração usa `backend\.env.demo` e `backend\database\petsystem_demo.sqli
 
 Dê dois cliques em `scripts\verificar.bat` para executar PHPUnit em SQLite em memória, os testes `node:test` e o build de produção do Vite. O script apresenta `TUDO OK` ou identifica a etapa que falhou.
 
-## Estado e limitações
-
-O projeto segue em validação local e não inclui processo de implantação em produção. A demonstração local usa SQLite; o MySQL ainda precisa ser configurado e validado. O Dashboard agrega valores registrados em atendimentos concluídos; pagamentos externos não são processados pela aplicação. Não há credenciais padrão de demonstração.
-
-Próximas melhorias consideradas: configuração e validação do MySQL, gestão de usuários pela interface, carteira de vacinas e vermífugos, agenda semanal e auditoria de ações.
-
-## Contato profissional
+## Contato Profissional
 
 - [LinkedIn — Natan Da Luz](https://www.linkedin.com/in/natandaluz/)
