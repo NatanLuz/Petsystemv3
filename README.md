@@ -14,7 +14,7 @@ Aplicação web para apoiar a rotina de uma clínica veterinária, com API Larav
 - Dashboard com contagens, próximos atendimentos do dia e faturamento de atendimentos concluídos no mês local. A data operacional usa `America/Sao_Paulo`.
 - Privacidade por perfil aplicada no backend: veterinários não recebem valores financeiros; recepcionistas não recebem evolução clínica.
 
-## Stack
+## Stack do Projeto
 
 - Backend: PHP , Laravel 12+ e Laravel.
 - Frontend: React e Vite.
