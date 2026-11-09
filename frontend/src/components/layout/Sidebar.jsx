@@ -11,15 +11,6 @@ const navigationItems = [
   { label: "Atendimentos", to: "/attendances", enabled: true },
 ];
 
-const navIcons = {
-  '/': 'M3 10.5 12 3l9 7.5M5 9v12h14V9M9 21v-7h6v7',
-  '/clients': 'M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8m6-7.5a4 4 0 0 1 0 7.75M20 21v-2a4 4 0 0 0-3-3.87',
-  '/pets': 'M12 21s-8-4.6-8-11a4.5 4.5 0 0 1 8-2.9A4.5 4.5 0 0 1 20 10c0 6.4-8 11-8 11ZM5 4l1.5 1M19 4l-1.5 1',
-  '/services': 'M4 7h16M4 12h16M4 17h10M7 4v3m10-3v3',
-  '/appointments': 'M7 3v4m10-4v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Zm3 8h3m-3 4h7',
-  '/attendances': 'M8 4h8l3 3v13H5V4h3Zm1 0v5h6V4m-6 9h6m-6 3h6',
-};
-
 const roleLabels = { admin: 'Administrador', receptionist: 'Recepcionista', veterinarian: 'Veterinário' };
 
 export default function Sidebar() {
@@ -51,7 +42,6 @@ export default function Sidebar() {
               }
               onClick={() => setMobileOpen(false)}
             >
-              <svg className="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={navIcons[item.to]} /></svg>
               {item.label}
             </NavLink>
           ) : (

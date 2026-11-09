@@ -1,4 +1,4 @@
-﻿# Configuração local — PetSystem V3
+# Configuração local — PetSystem V3
 
 ## Requisitos e dependências
 
@@ -97,4 +97,4 @@ scripts\verificar.bat
 
 O script recusa `backend\bootstrap\cache\config.php` ou `.env.testing`, força `APP_ENV=testing`, `DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`, URL vazia, sessão/cache em array e caminho de cache temporário antes do PHPUnit. Executa testes frontend e `npm.cmd run verify` (testes e build). O banco demo não é usado nos testes. `composer test` limpa cache; prefira o script seguro. A repetição dos testes frontend no script é comportamento atual, sem alteração funcional.
 
-O build é gerado em `frontend/dist`, ignorado pelo Git. Build aprovado não valida hospedagem ou autenticação em produção. Sem automação de navegador instalada, execute o [checklist manual em cópia descartável](checklist-manual.md). Consulte também [backup e restauração](backup.md).
+O build é gerado em `frontend/dist`, ignorado pelo Git. Build aprovado não valida hospedagem ou autenticação em produção. Para o aceite dos fluxos completos, execute e registre o [checklist manual em cópia descartável](checklist-manual.md), mesmo quando houver verificações automatizadas isoladas no navegador. Consulte também [backup e restauração](backup.md).

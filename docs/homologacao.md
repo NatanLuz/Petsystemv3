@@ -1,6 +1,6 @@
-﻿# Homologação técnica — PetSystem V3
+# Homologação técnica — PetSystem V3
 
-Data: **08/11/2026**, referência do proprietário em America/Sao_Paulo. Status: **candidato para revisão e homologação, ainda sem aceite final de entrega**.
+Registro inicial: **08/11/2026**. Atualização documental: **09/11/2026**, referência do proprietário em America/Sao_Paulo. Status: **candidato para revisão e homologação, ainda sem aceite final de entrega**. Os resultados iniciais abaixo mantêm sua data; as verificações posteriores são discriminadas na atualização ao final.
 
 ## Estado real
 
@@ -27,7 +27,7 @@ Data: **08/11/2026**, referência do proprietário em America/Sao_Paulo. Status:
 | Auditoria Composer | Sem avisos após patches direcionados |
 | Auditoria npm | Dois pacotes moderados do React Router; zero altos/críticos após patches |
 | Backup/restauração | Ensaio aprovado apenas com SQLite sintético descartável; restauração real pendente |
-| E2E e capturas | Não executados: ferramenta de navegador automatizado indisponível nesta sessão |
+| E2E e capturas em 08/11 | Não executados naquela etapa; capturas e verificação isolada da Sidebar adicionadas em 09/11, conforme atualização abaixo |
 
 A suíte backend cobre login/logout, regeneração e invalidação de sessão, CSRF real sem o bypass de testes, conta inativa, permissões por requisição direta, clientes, pets, serviços, conflitos por pet, transições de agenda, evolução, conclusão, pagamento, métricas, erros e persistência no banco de teste. A suíte frontend cobre permissões, sessão expirada, busca, paginação, datas, formatação, métricas e payload de atendimentos. Os formulários completos e a navegação visual aguardam o checklist manual.
 
@@ -35,7 +35,7 @@ O sandbox impediu inicialmente o esbuild de ler caminhos necessários. Repetidos
 
 ## Três perfis
 
-A inspeção agregada do SQLite encontrou **um admin ativo**, **nenhum receptionist ativo** e **nenhum veterinarian ativo**. Foi solicitado ao proprietário criar os dois perfis faltantes por `scripts\criar-usuario.bat`, digitando as senhas somente no terminal. A criação e a revalidação dessas contas permanecem pendentes até confirmação; não foram inventadas senhas.
+Na inspeção inicial de 08/11 havia somente um administrador ativo. Em 09/11 foram confirmadas exatamente três contas ativas, uma por perfil: `admin`, `receptionist` e `veterinarian`. A criação dos perfis faltantes deixou de ser pendência. As senhas foram informadas pelo proprietário somente no terminal privado; não há credenciais de acesso publicadas.
 
 Os três perfis foram exercitados nos testes isolados. Gates do backend e permissões do frontend correspondem à matriz do README. Respostas aninhadas também são verificadas: veterinário não recebe `price`, `amount_charged` ou `payment_method`; recepção não recebe `evolution`. Escrita de campos sensíveis pelo perfil indevido é recusada. A ficha do pet, alergias e alertas operacionais são compartilhados pela implementação atual. Isso precisa ser conhecido no aceite de privacidade do proprietário.
 
@@ -50,17 +50,25 @@ Não foram adicionados módulos, notificações, gestão de funcionários pela i
 
 ## Pendências impeditivas de homologação final
 
-- Criar e conferir as contas ativas `receptionist` e `veterinarian` com senhas do proprietário.
 - Executar e registrar o [checklist manual](checklist-manual.md) por perfil em cópia descartável, incluindo as duas regressões.
 - Resolver ou concluir avaliação formal dos avisos moderados do React Router antes da release, sem upgrade forçado indiscriminado.
 - Validar backup e restauração reais em cópia separada, sem sobrescrever a demonstração persistente.
 - Revisar ambiente de hospedagem, debug, HTTPS, cookies, acesso e backup antes de qualquer afirmação de produção.
-- Gerar as cinco capturas reais e obter aceite do proprietário.
+- Obter aceite funcional final do proprietário; as cinco capturas já foram recebidas e revisadas.
 
 ## Documentação, GitHub e próximos passos
 
-README principal, README do backend e `docs/setup.md` revisados; adicionados `backup.md`, `checklist-manual.md`, `seguranca-dependencias.md` e `img/README.md`. A pasta `docs/img` está preparada; ainda faltam `dashboard.png`, `agendamentos.png`, `atendimentos.png`, `pets.png` e `veterinario.png`.
+README principal, README do backend e `docs/setup.md` revisados; adicionados `backup.md`, `checklist-manual.md`, `seguranca-dependencias.md` e `img/README.md`. A pasta `docs/img` contém as cinco capturas reais, com nomes padronizados: `dashboard.png`, `agendamentos.png`, `atendimentos.png`, `pets.png` e `veterinario.png`.
 
 Foram registrados os commits `25ad446` (atendimentos e regressões), `429888e` (patches de segurança) e `315426a` (documentação e inspeção). A branch `finalizacao/homologacao-v3` foi publicada com push normal e passou a acompanhar `origin/finalizacao/homologacao-v3`. Esta atualização registra a publicação no próprio relatório. Consulte `git log --oneline origin/main..HEAD` para o histórico completo. Não houve merge na main, implantação ou publicação de release/tag `v1.0.0`.
 
 A versão é tecnicamente verificável e está preparada para revisão; **a entrega homologada e a prontidão de produção ainda dependem dos itens acima**. Após o aceite: revisar o diff/PR, repetir checks se houver mudanças, integrar a branch conforme o fluxo do proprietário e só então preparar a release. LinkedIn e portfólio devem usar apenas capturas fictícias revisadas e descrever o escopo efetivamente entregue, sem anunciar produção ou novas funções que não foram validadas.
+
+## Atualização de 09/11/2026
+
+- Autenticação administrativa validada por HTTP real, com credenciais digitadas em terminal privado: CSRF 204, login 200, consulta autenticada 200 e logout 204. O servidor estava em `demo` no SQLite esperado. Os demais campos do administrador e os outros dois usuários foram preservados. Isso não equivale ao aceite integral da aplicação por perfil.
+- Sidebar com seis opções somente textuais, validada em Chrome headless isolado com autenticação fictícia nas larguras 1280, 760, 390 e 320 px. Foram conferidos links, seleção ativa, foco por teclado, abertura/fechamento móvel e ausência de overflow horizontal. Não foi um E2E completo com dados do sistema.
+- Cinco screenshots fornecidas pelo proprietário, revisadas visualmente e verificadas quanto à integridade PNG. Nomes padronizados sem alterar o conteúdo binário. As legendas refletem as capturas: atendimentos em lista vazia e veterinário no dashboard sem financeiro. Veja [o índice das imagens](img/README.md).
+- README reorganizado para apresentação pública, com contexto da evolução do V2, instalação em dois terminais CMD, permissões, testes e limitações. Removido o resumo temporário de pull request, sem referências pelo projeto e redundante com este relatório. Guias e scripts necessários à operação foram preservados.
+- Nesta revisão documental, `npm.cmd run verify` aprovou os 96 testes frontend e o build de produção Vite. Os testes backend de 217 casos permanecem como evidência da execução inicial, sem nova execução nesta alteração exclusivamente documental.
+- Esta etapa não inclui push, merge, release, alteração de código funcional ou modificação do banco. O aceite manual completo, a restauração real de backup e a avaliação de segurança continuam pendentes.

@@ -1,6 +1,6 @@
-﻿# Homologação manual e capturas
+# Homologação manual e capturas
 
-Status inicial: **pendente**. Não há execução E2E de navegador nesta sessão. Os testes de API e de funções JavaScript não substituem este aceite visual. Registre data, perfil, navegador, resultado e evidência sanitizada de cada item.
+Status do aceite funcional completo: **pendente**. Os testes de API, de funções JavaScript e a verificação isolada da Sidebar no navegador não substituem este aceite. Registre data, perfil, navegador, resultado e evidência sanitizada de cada item. As cinco capturas recebidas e revisadas estão no índice de imagens; não comprovam os demais fluxos deste checklist.
 
 ## Ambiente descartável obrigatório
 
@@ -27,6 +27,7 @@ Use dados fictícios e e-mails `example.invalid`. Pare os servidores que você m
 - [ ] Testar busca por cliente/pet/serviço/status, filtro de data, paginação, campos obrigatórios, mensagens de validação, lista vazia e botão de tentar novamente após falha de rede.
 - [ ] Reiniciar somente os servidores da cópia descartável e confirmar persistência dos registros nela.
 - [ ] Executar o ensaio de restauração de um backup em ambiente separado conforme `backup.md` e registrar o resultado.
-- [ ] Capturar as cinco telas de `img/README.md` e obter aceite do proprietário para release.
+- [x] Receber e revisar as cinco capturas reais descritas em [img/README.md](img/README.md), com nomes padronizados e conteúdo preservado.
+- [ ] Obter aceite funcional do proprietário para a release, sem considerar as capturas como prova de todos os fluxos.
 
 Os testes de API já exercitam controle de acesso direto, sessão, CSRF, validações e persistência em SQLite em memória. Este checklist continua pendente até execução humana documentada; não marcar itens apenas porque há teste automatizado semelhante.
