@@ -1,38 +1,61 @@
-## PetSystem V3 | Sistema Web (Para Petshop/Clínica Veterinária)
+﻿# PetSystem V3 | Sistema Web para Pet Shop e Clínica Veterinária
 
-Aplicação web para apoiar a rotina de uma clínica veterinária, com API Laravel e frontend React. O projeto demonstra autenticação, autorização por perfil, cadastros, agenda, atendimentos e integração entre frontend e backend.
+Sistema freelancer para apoiar cadastros, agenda e atendimentos de um pet shop e clínica veterinária. A versão de demonstração local usa SQLite persistente. A entrega está em homologação; o resultado e as pendências estão em [docs/homologacao.md](docs/homologacao.md).
 
-## Funcionalidades
+## Tecnologias
 
-- Autenticação de sessão com Laravel Sanctum e bloqueio de usuários inativos.
-- Acesso por perfil: administrador, recepção e veterinário; as permissões também são aplicadas pela API.
-- Cadastro e consulta de clientes, pets, serviços, agendamentos e atendimentos, com histórico de clientes e pets.
-- Identificador público de seis dígitos para pets.
-- Busca com debounce e paginação local nas listagens principais, validação de formulários pela API e estados de carregamento, erro e lista vazia.
-- Agendamentos com verificação de conflito, transições de status, cancelamento e reagendamento.
-- Atendimentos vinculados a agendamentos ou avulsos.
-- Dashboard com contagens, próximos atendimentos do dia e faturamento de atendimentos concluídos no mês local. A data operacional usa `America/Sao_Paulo`.
-- Privacidade por perfil aplicada no backend: veterinários não recebem valores financeiros; recepcionistas não recebem evolução clínica.
+- PHP 8.2+, Laravel 12 e Laravel Sanctum 4 (autenticação por sessão e CSRF).
+- React 18, React Router 6, Axios e Vite 6.
+- SQLite na demonstração; PHPUnit 11 e `node:test` nos testes.
+- Data operacional da clínica: `America/Sao_Paulo`.
 
-## Stack do Projeto
+## Funcionalidades disponíveis
 
-- Backend: PHP , Laravel 12+ e Laravel.
-- Frontend: React e Vite.
-- Demonstração local: SQLite. A configuração MySQL é uma etapa futura.
-- Testes: PHPUnit no backend e `node:test` no frontend.
+- Login, logout, sessão, bloqueio de contas inativas e autorização por perfil na API.
+- Clientes, pets com código público de seis dígitos, ficha e histórico.
+- Serviços com preço, duração e ativação/desativação pelo administrador.
+- Agendamentos, confirmação, cancelamento e reagendamento com motivo; detecção de sobreposição para o mesmo pet.
+- Atendimentos avulsos ou iniciados por agendamento confirmado, evolução clínica, conclusão e registro de valor e forma de pagamento.
+- Dashboard com contagens, próximos agendamentos de hoje e faturamento de atendimentos concluídos no mês; gráfico dos últimos sete dias.
+- Busca, filtros e paginação local nas telas pertinentes, validações e estados de carregamento, erro e lista vazia.
 
-## Como Executar Localmente
+O registro de pagamento é interno: não há integração com banco, adquirente ou emissão fiscal. Faturamento soma valores de atendimentos concluídos, sem conciliação de recebimentos.
 
-1. Dê dois cliques em `scripts\iniciar.bat`. O script prepara o ambiente demo e abre backend e frontend em janelas separadas.
-2. Acesse `http://127.0.0.1:5173` no navegador.
-3. Crie uma conta local com `scripts\criar-usuario.bat`; a senha é solicitada de forma interativa e não há senha padrão no repositório.
+## Perfis reais
 
-A demonstração usa `backend\.env.demo` e `backend\database\petsystem_demo.sqlite`. Os perfis são `admin`, `receptionist` e `veterinarian`. O Veterinário não recebe valores financeiros e a Recepção não recebe evolução clínica. Para parar os servidores do projeto, use `scripts\parar.bat`.
+| Operação | admin | receptionist | veterinarian |
+| --- | --- | --- | --- |
+| Consultar, criar e editar clientes e pets | Sim | Sim | Sim |
+| Excluir clientes/pets sem vínculos impeditivos | Sim | Sim | Não |
+| Consultar serviços | Sim | Sim | Sim, sem preço |
+| Criar, editar e excluir/desativar serviços | Sim | Não | Não |
+| Consultar, criar e editar agendamentos | Sim | Sim | Sim |
+| Excluir agendamentos | Sim | Não | Não |
+| Consultar e iniciar atendimentos | Sim | Sim | Sim |
+| Editar evolução clínica e concluir atendimento | Sim | Não | Sim |
+| Registrar valores e pagamento; consultar faturamento | Sim | Sim | Não |
+| Excluir atendimentos | Não | Não | Não |
 
-## Testes e Verificação
+A conclusão pelo veterinário exige evolução clínica. O administrador pode concluir sem essa exigência na regra atual. Atendimentos são permanentes; a API também recusa sua exclusão pelo administrador. A API remove valores financeiros das respostas do veterinário e a evolução clínica das respostas da recepção, inclusive nos históricos aninhados. A ficha básica do pet, alergias e alertas operacionais são compartilhados entre os três perfis. Os controles visuais acompanham as permissões da API.
 
-Dê dois cliques em `scripts\verificar.bat` para executar PHPUnit em SQLite em memória, os testes `node:test` e o build de produção do Vite. O script apresenta `TUDO OK` ou identifica a etapa que falhou.
+## Instalação e execução
 
-## Contato Profissional
+Requisitos: Windows, Git, PHP 8.2+ com extensões exigidas pelo Composer e `pdo_sqlite`, Composer 2, Node.js compatível com Vite 6 (validado com Node 24) e npm. Os scripts `.bat` esperam PHP em `C:\xampp\php\php.exe` e Node/npm no PATH.
 
-- [LinkedIn — Natan Da Luz](https://www.linkedin.com/in/natandaluz/)
+Siga [docs/setup.md](docs/setup.md) para instalar dependências, preparar `.env.demo` com chave própria e iniciar Laravel e React em **dois terminais CMD**. O script `scripts\iniciar.bat` é um atalho após essa configuração. Ele preserva bancos existentes, mas pode aplicar migrations pendentes: faça backup antes de atualizar uma demonstração com dados importantes.
+
+Acesse `http://127.0.0.1:5173`. Crie contas com `scripts\criar-usuario.bat`: nome, e-mail, perfil e senha são informados no terminal. Não há senha padrão. Nunca envie senhas pelo chat nem pela linha de comando.
+
+## Validação e entrega
+
+Execute `scripts\verificar.bat`: PHPUnit usa SQLite em memória, seguido dos testes frontend e build Vite. Não use o SQLite persistente em testes destrutivos. Veja [o checklist manual](docs/checklist-manual.md), [backup e restauração](docs/backup.md) e [as cinco capturas necessárias](docs/img/README.md).
+
+Não versionar `.env`, bancos SQLite, backups, senhas ou dados reais. O `.env.demo` é local e não acompanha o repositório; [o modelo sem segredos](backend/.env.demo.example) permite prepará-lo. O `.env` original e o banco histórico MariaDB não são necessários à demonstração.
+
+## Limitações e status
+
+A demonstração não equivale a um ambiente de produção homologado. Instalação pública, HTTPS, cookies seguros, debug desabilitado, infraestrutura e restauração real de backup precisam de validação própria. Listagens e paginação local não foram homologadas para grandes volumes ou alta concorrência. A agenda verifica conflitos por pet, sem agenda por profissional. Notificações e gestão de funcionários pela interface ficam para versão futura.
+
+A release `v1.0.0` depende da homologação final dos três perfis e do aceite do proprietário. Não há implantação de produção incluída.
+
+[LinkedIn — Natan Da Luz](https://www.linkedin.com/in/natandaluz/)
