@@ -11,6 +11,7 @@ import { listPets } from '../pets/petService';
 import { listServices } from '../services/serviceService';
 import { EmptyState, ErrorState, LoadingSkeleton, Toast } from '../../components/feedback/Feedback';
 import { createAttendance, listAttendances, updateAttendance } from './attendanceService';
+import { attendancePayload } from './attendancePayload.js';
 
 const paymentMethods = ['Dinheiro', 'Pix', 'Cartão de crédito', 'Cartão de débito', 'Transferência'];
 function formatDate(value) {
@@ -127,18 +128,7 @@ export default function AttendancesPage() {
     setSaving(true);
     setFieldErrors({});
     setFeedback('');
-    let payload;
-    if (editing) {
-      payload = {};
-      if (isVet || isAdmin) Object.assign(payload, { notes: form.notes || null, evolution: form.evolution || null, service_ids: form.service_ids.map(Number), status: form.status });
-      if (isReception || isAdmin) Object.assign(payload, { amount_charged: form.amount_charged === '' ? null : Number(form.amount_charged), payment_method: form.payment_method || null });
-    } else if (form.appointment_id) {
-      payload = { appointment_id: Number(form.appointment_id) };
-    } else {
-      payload = { client_id: Number(form.client_id), pet_id: Number(form.pet_id), service_ids: form.service_ids.map(Number) };
-      if (isVet || isAdmin) Object.assign(payload, { notes: form.notes || null, evolution: form.evolution || null });
-      if (isReception || isAdmin) Object.assign(payload, { amount_charged: form.amount_charged === '' ? null : Number(form.amount_charged), payment_method: form.payment_method || null });
-    }
+    const payload = attendancePayload(form, editing, user?.role);
     try {
       if (editing) await updateAttendance(editing.id, payload);
       else await createAttendance(payload);

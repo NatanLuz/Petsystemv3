@@ -262,6 +262,41 @@ class AttendanceApiTest extends TestCase
         $this->assertDatabaseHas('attendances', ['id' => $attendance['id']]);
     }
 
+    public function test_admin_can_record_payment_after_completion_without_resending_status(): void
+    {
+        [$client, $pet, $service] = $this->records();
+        $this->actingAs(User::factory()->active()->admin()->create(), 'web');
+        $attendance = $this->postJson('/api/attendances', [
+            'client_id' => $client->id, 'pet_id' => $pet->id, 'service_ids' => [$service->id],
+            'evolution' => 'Consulta realizada.',
+        ])->assertCreated()->json();
+        $completed = $this->patchJson('/api/attendances/'.$attendance['id'], ['status' => 'completed'])
+            ->assertOk()->json('completed_at');
+
+        $this->patchJson('/api/attendances/'.$attendance['id'], [
+            'amount_charged' => 140, 'payment_method' => 'Pix',
+        ])->assertOk()->assertJsonPath('status', 'completed')
+            ->assertJsonPath('completed_at', $completed)->assertJsonPath('amount_charged', '140.00');
+        $this->assertDatabaseHas('attendances', [
+            'id' => $attendance['id'], 'amount_charged' => 140, 'payment_method' => 'Pix',
+        ]);
+    }
+
+    public function test_veterinarian_can_save_evolution_when_starting_a_confirmed_appointment(): void
+    {
+        [, $pet, $service] = $this->records();
+        $appointment = $this->appointment($pet, $service);
+        $this->actingAs(User::factory()->active()->veterinarian()->create(), 'web');
+        $created = $this->postJson('/api/attendances', [
+            'appointment_id' => $appointment->id,
+            'evolution' => 'Exame inicial realizado.',
+        ])->assertCreated()->assertJsonPath('evolution', 'Exame inicial realizado.')
+            ->assertJsonMissingPath('amount_charged')->json();
+        $this->assertDatabaseHas('attendances', [
+            'id' => $created['id'], 'evolution' => 'Exame inicial realizado.',
+        ]);
+    }
+
     /** @return array{Client, Pet, Service} */
     private function records(): array
     {
