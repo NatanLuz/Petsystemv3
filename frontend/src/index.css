@@ -1057,8 +1057,7 @@ button.metric-card:focus-visible {
   cursor: pointer;
 }
 
-.sidebar-toggle svg,
-.sidebar-icon {
+.sidebar-toggle svg {
   width: 21px;
   height: 21px;
   flex: 0 0 auto;
@@ -1073,10 +1072,6 @@ button.metric-card:focus-visible {
   outline: 3px solid var(--accent-warning);
   outline-offset: 2px;
 }
-
-.sidebar-link { gap: 0.7rem; }
-.sidebar-icon { opacity: 0.88; }
-.sidebar-link-active .sidebar-icon { opacity: 1; }
 
 .sidebar-identity {
   display: grid;
