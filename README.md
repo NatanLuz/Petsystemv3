@@ -14,7 +14,6 @@ O PetSystem V3 dá continuidade ao PetSystem V2. Esta versão reúne a aplicaç�
 | Frontend | React 18, React Router 6, Vite 6, Axios |
 | Demonstração local | SQLite persistente |
 | Testes | PHPUnit 11 e `node:test` |
-| Data operacional | America/Brasil |
 
 ## Funcionalidades
 
