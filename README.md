@@ -4,7 +4,7 @@ Sistema web desenvolvido como projeto freelancer para apoiar a operação de um 
 
 ## Evolução do projeto
 
-O PetSystem V3 dá continuidade ao PetSystem V2. Esta versão reúne a aplicação atual em uma API Laravel e uma interface React, com autenticação por sessão, autorização no backend e ambiente demonstrativo com SQLite persistente. O repositório apresenta o escopo implementado e suas evidências de validação; a homologação final permanece em andamento.
+O PetSystem V3 dá continuidade ao PetSystem V2. Esta versão reúne a aplicação atual em uma API Laravel e uma interface React, com autenticação por sessão, autorização no backend e ambiente demonstrativo com SQLite. O repositório apresenta o escopo implementado e suas evidências de validação; a homologação final permanece em andamento.
 
 ## Tecnologias
 
@@ -12,7 +12,7 @@ O PetSystem V3 dá continuidade ao PetSystem V2. Esta versão reúne a aplicaç�
 | --- | --- |
 | Backend | PHP 8.2+, Laravel 12, Laravel Sanctum 4 |
 | Frontend | React 18, React Router 6, Vite 6, Axios |
-| Demonstração local | SQLite persistente |
+| Demonstração local | SQLite |
 | Testes | PHPUnit 11 e `node:test` |
 
 ## Funcionalidades
