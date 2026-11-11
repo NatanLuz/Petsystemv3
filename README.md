@@ -49,7 +49,7 @@ As permissões são aplicadas pela API, além dos controles da interface.
 
 A API remove campos financeiros das respostas do veterinário e a evolução clínica das respostas da recepção, inclusive em históricos aninhados. A ficha básica do pet, alergias e alertas operacionais são compartilhados pelos três perfis. A conclusão pelo veterinário exige evolução clínica; o administrador pode concluir sem essa exigência na regra atual. Atendimentos são registros permanentes.
 
-## Capturas de tela
+## Capturas de tela do Projeto
 
 Capturas reais da interface fornecidas pelo proprietário, revisadas visualmente para publicação. Os exemplos exibem nomes genéricos; não foram identificados contatos pessoais, credenciais ou dados clínicos sensíveis. As imagens foram preservadas sem edição visual. Veja o [índice das capturas](docs/img/README.md) para o conteúdo de cada tela e os limites dessa evidência.
 
