@@ -1,6 +1,6 @@
 # Homologação técnica — PetSystem V3
 
-Registro inicial: **08/11/2026**. Atualização documental: **09/11/2026**, referência do proprietário em America/Sao_Paulo. Status: **candidato para revisão e homologação, ainda sem aceite final de entrega**. Os resultados iniciais abaixo mantêm sua data; as verificações posteriores são discriminadas na atualização ao final.
+Registro inicial: **08/11/2026**. Atualização documental: **09/11/2026**, referência do proprietário em BRASIL/RS. Status: **candidato para revisão e homologação, ainda sem aceite final de entrega**. Os resultados iniciais abaixo mantêm sua data; as verificações posteriores são discriminadas na atualização ao final.
 
 ## Estado real
 
