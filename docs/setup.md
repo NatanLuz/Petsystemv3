@@ -1,5 +1,7 @@
 # Configuração local — PetSystem V3
 
+Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua cópia do projeto.
+
 ## Requisitos e dependências
 
 Use CMD no Windows. Verifique `git --version`, `C:\xampp\php\php.exe --version`, `composer --version`, `node.exe --version` e `npm.cmd --version`. PHP mínimo: 8.2, com `pdo_sqlite`, `mbstring`, OpenSSL e demais extensões verificadas pelo Composer. Não é necessário iniciar MySQL/MariaDB.
@@ -13,7 +15,7 @@ set "PATH=C:\Program Files\nodejs;%PATH%"
 Instale as versões dos lockfiles, sem atualizar dependências:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\backend
+cd /d C:\caminho\Petsystemv3\backend
 composer install
 composer check-platform-reqs
 cd ..\frontend
@@ -31,7 +33,7 @@ if not exist .env.demo copy .env.demo.example .env.demo
 notepad .env.demo
 ```
 
-Ajuste `DB_DATABASE` para o caminho absoluto desta cópia, usando barras normais, por exemplo `C:/Users/mymy2/Petsystemv3/backend/database/petsystem_demo.sqlite`. Use `APP_ENV=demo`, `DB_CONNECTION=sqlite`, `DB_URL=` vazio, sessões e cache em arquivo e URLs `127.0.0.1`. O exemplo está preparado para HTTP local com debug desabilitado; não é uma configuração de hospedagem pública.
+Ajuste `DB_DATABASE` para o caminho absoluto desta cópia, usando barras normais, por exemplo `C:/caminho/Petsystemv3/backend/database/petsystem_demo.sqlite`. Use `APP_ENV=demo`, `DB_CONNECTION=sqlite`, `DB_URL=` vazio, sessões e cache em arquivo e URLs `127.0.0.1`. O exemplo está preparado para HTTP local com debug desabilitado; não é uma configuração de hospedagem pública.
 
 Gere uma chave **somente se APP_KEY estiver vazio**:
 
@@ -58,14 +60,14 @@ Para banco novo, `scripts\iniciar.bat` cria o arquivo SQLite e aplica migrations
 Depois da preparação do banco, terminal 1:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\backend
+cd /d C:\caminho\Petsystemv3\backend
 C:\xampp\php\php.exe artisan --env=demo serve --host=127.0.0.1 --port=8000
 ```
 
 Terminal 2:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\frontend
+cd /d C:\caminho\Petsystemv3\frontend
 set "PATH=C:\Program Files\nodejs;%PATH%"
 npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```

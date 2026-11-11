@@ -1,5 +1,7 @@
 # PetSystem V3
 
+Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua cópia do projeto.
+
 Sistema web desenvolvido como projeto freelancer para apoiar a operação de um pet shop e clínica veterinária: cadastros de clientes e pets, serviços, agendamentos e atendimentos, com acesso separado para administração, recepção e veterinários.
 
 ## Evolução do projeto
@@ -88,7 +90,7 @@ Requisitos: Windows com CMD, Git, PHP 8.2+ com as extensões exigidas pelo Compo
 Instale as dependências dos lockfiles, a partir desta cópia do projeto:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\backend
+cd /d C:\caminho\Petsystemv3\backend
 composer install
 composer check-platform-reqs
 cd ..\frontend
@@ -104,14 +106,14 @@ Siga o [guia de configuração](docs/setup.md) para preparar um banco novo ou ve
 Com dependências, ambiente e banco já preparados, abra o terminal 1 para o Laravel:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\backend
+cd /d C:\caminho\Petsystemv3\backend
 C:\xampp\php\php.exe artisan --env=demo serve --host=127.0.0.1 --port=8000
 ```
 
 No terminal 2, inicie o React/Vite:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\frontend
+cd /d C:\caminho\Petsystemv3\frontend
 set "PATH=C:\Program Files\nodejs;%PATH%"
 npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
@@ -134,7 +136,7 @@ scripts\verificar.bat
 Para executar apenas os testes frontend e o build de produção:
 
 ```bat
-cd /d C:\Users\mymy2\Petsystemv3\frontend
+cd /d C:\caminho\Petsystemv3\frontend
 set "PATH=C:\Program Files\nodejs;%PATH%"
 node.exe --test
 npm.cmd run build

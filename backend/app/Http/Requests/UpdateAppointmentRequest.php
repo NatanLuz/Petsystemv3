@@ -72,10 +72,14 @@ class UpdateAppointmentRequest extends FormRequest
             }
             $service = Service::find($serviceId);
 
-            if ($service && AppointmentOverlap::exists(
+            $duration = $serviceId === (int) $appointment->service_id
+                ? (int) $appointment->duration_minutes
+                : (int) $service?->duration_minutes;
+            if ($service && in_array($nextStatus, [Appointment::STATUS_SCHEDULED, Appointment::STATUS_CONFIRMED], true)
+                && AppointmentOverlap::exists(
                 $petId,
                 $scheduledAt,
-                (int) $service->duration_minutes,
+                $duration,
                 (int) $appointment->id,
             )) {
                 $validator->errors()->add('scheduled_at', 'Este pet já possui um agendamento nesse período. Escolha outro horário.');

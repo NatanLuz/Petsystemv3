@@ -1,4 +1,6 @@
-﻿# Backup e restauração — SQLite demo
+# Backup e restauração — SQLite demo
+
+Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua cópia do projeto.
 
 Este procedimento vale para a demonstração local em Windows, com SQLite e sessões em arquivo. Não se aplica ao banco histórico MariaDB. Backups contêm dados sensíveis: guarde fora do repositório, com acesso restrito, proteção adequada e uma cópia separada do computador. Defina frequência e retenção com o proprietário antes de uso real.
 
@@ -12,7 +14,7 @@ Este procedimento vale para a demonstração local em Windows, com SQLite e sess
 Exemplo PowerShell para a cópia offline, somente após os passos 1 e 2; adapte a unidade ao destino real e restrito:
 
 ```powershell
-$projectPath = 'C:\Users\mymy2\Petsystemv3'
+$projectPath = 'C:\caminho\Petsystemv3'
 $backupPath = Join-Path 'D:\Backups\PetSystem' (Get-Date -Format 'yyyyMMdd-HHmmss')
 New-Item -ItemType Directory -Path $backupPath -ErrorAction Stop
 Copy-Item -LiteralPath (Join-Path $projectPath 'backend\database\petsystem_demo.sqlite') -Destination $backupPath -ErrorAction Stop
