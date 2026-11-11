@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { authErrorMessage, getCurrentUser, initializeCsrf, loginUser, logoutUser } from './authService';
 import { isSessionScopedApiRequest } from './sessionRequests.js';
 import api from '../../services/api';
+import { clearDashboardRequests } from '../../pages/dashboardMetrics.js';
 
 const AuthContext = createContext(null);
 
@@ -23,6 +24,7 @@ export function AuthProvider({ children }) {
     function endSession(generation) {
       if (!isCurrent(generation)) return;
       sessionGeneration.current += 1;
+      clearDashboardRequests();
       setUser(null);
       setStatus('guest');
       setApiNotice('');
@@ -37,6 +39,7 @@ export function AuthProvider({ children }) {
           if (!isCurrent(generation)) return;
           const identity = await getCurrentUser();
           if (!isCurrent(generation)) return;
+          clearDashboardRequests();
           setUser(identity);
           // Keep the page mounted: the original operation is never replayed.
           setApiNotice('A proteção da sessão foi renovada. Seus dados continuam no formulário; tente a operação novamente.');
@@ -114,6 +117,7 @@ export function AuthProvider({ children }) {
     if (busy.current) return false;
     busy.current = true;
     const generation = ++sessionGeneration.current;
+    clearDashboardRequests();
     setOperation(action);
     setError('');
     setApiNotice('');
@@ -123,6 +127,7 @@ export function AuthProvider({ children }) {
       const identity = await request();
       if (!mounted.current || generation !== sessionGeneration.current) return false;
       sessionGeneration.current += 1;
+      clearDashboardRequests();
       setUser(identity || null);
       setStatus(identity ? 'authenticated' : 'guest');
       return true;

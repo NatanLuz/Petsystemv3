@@ -14,5 +14,5 @@ export default function ProtectedRoute({ children }) {
       <button className="btn btn-secondary" onClick={refreshUser}>Tentar novamente</button>
     </div>;
   }
-  return user ? (children || <Outlet />) : <Navigate to="/login" replace />;
+  return user ? <React.Fragment key={user.id + ':' + user.role}>{children || <Outlet />}</React.Fragment> : <Navigate to="/login" replace />;
 }

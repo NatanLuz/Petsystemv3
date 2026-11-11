@@ -1,6 +1,10 @@
 export const CLINIC_TIME_ZONE = 'America/Sao_Paulo';
 const inFlightDashboardRequests = new Map();
 
+export function clearDashboardRequests() {
+  inFlightDashboardRequests.clear();
+}
+
 export function countRecords(records) {
   if (!Array.isArray(records)) throw new TypeError('A resposta não é uma lista.');
   return records.length;
