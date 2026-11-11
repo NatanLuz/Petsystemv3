@@ -21,6 +21,9 @@ if not exist "%FRONTEND%\node_modules\.bin\vite.cmd" (echo ERRO: dependencias fr
 
 pushd "%BACKEND%"
 set "APP_ENV=testing"
+set "APP_KEY="
+for /f "delims=" %%K in ('%PHP% -r "echo base64_encode(random_bytes(32));"') do set "APP_KEY=base64:%%K"
+if not defined APP_KEY (echo ERRO: nao foi possivel gerar chave efemera de testes. & popd & exit /b 1)
 set "DB_CONNECTION=sqlite"
 set "DB_DATABASE=:memory:"
 set "DB_URL="
