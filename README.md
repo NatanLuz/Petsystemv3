@@ -1,6 +1,6 @@
 # PetSystem V3
 
-Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua cópia do projeto.
+Atenção: Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua cópia do projeto.
 
 Sistema web desenvolvido como projeto freelancer para apoiar a operação de um pet shop e clínica veterinária: cadastros de clientes e pets, serviços, agendamentos e atendimentos, com acesso separado para administração, recepção e veterinários.
 
