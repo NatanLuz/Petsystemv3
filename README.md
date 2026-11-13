@@ -1,167 +1,230 @@
 # PetSystem V3
 
-Atenção: Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua cópia do projeto.
+A web application for a pet shop and veterinary clinic, built as a real freelance project: client and pet records, services, appointments and visits, with separate access for administration, reception and veterinarians.
 
-Sistema web desenvolvido como projeto freelancer para apoiar a operação de um pet shop e clínica veterinária: cadastros de clientes e pets, serviços, agendamentos e atendimentos, com acesso separado para administração, recepção e veterinários.
+[Português (Brasil)](README.pt-BR.md)
 
-## Evolução do Projeto
+> The user interface is in Brazilian Portuguese, and the guides under `docs/` are currently written in Portuguese.
 
-O PetSystem V3 dá continuidade ao PetSystem V2. Esta versão reúne a aplicação atual em uma API Laravel e uma interface React, com autenticação por sessão, autorização no backend e ambiente demonstrativo com SQLite. O repositório apresenta o escopo implementado e suas evidências de validação; a homologação final permanece em andamento.
+## Table of contents
 
-## Tecnologias
+- [Overview](#overview)
+- [Technology stack](#technology-stack)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Engineering notes](#engineering-notes)
+- [Roles and permissions](#roles-and-permissions)
+- [Screenshots](#screenshots)
+- [Getting started](#getting-started)
+- [Testing and build](#testing-and-build)
+- [Documentation](#documentation)
+- [Known limitations](#known-limitations)
+- [Roadmap](#roadmap)
+- [Author](#author)
 
-| Camada | Tecnologias |
+## Overview
+
+PetSystem V3 is the successor to PetSystem V2. It was rebuilt as a Laravel REST API and a separate React application, with session-based authentication, authorization enforced on the backend, and a SQLite demo environment.
+
+This repository documents the implemented scope together with its validation evidence. Final acceptance is still in progress.
+
+## Technology stack
+
+| Layer | Technologies |
 | --- | --- |
 | Backend | PHP 8.2+, Laravel 12, Laravel Sanctum 4 |
 | Frontend | React 18, React Router 6, Vite 6, Axios |
-| Demonstração local | SQLite |
-| Testes | PHPUnit 11 e `node:test` |
+| Local demo database | SQLite |
+| Testing | PHPUnit 11 and `node:test` |
 
-## Funcionalidades
+## Architecture
 
-- Login e logout por sessão, proteção CSRF e bloqueio de usuários inativos.
-- Clientes e pets com ficha, histórico e código público de seis dígitos para cada pet.
-- Serviços com preço, duração e ativação/desativação pelo administrador.
-- Agendamentos com confirmação, cancelamento e reagendamento com motivo; verificação de sobreposição de horários para o mesmo pet.
-- Atendimentos avulsos ou iniciados a partir de agendamentos confirmados, evolução clínica, conclusão e registro de valor e forma de pagamento.
-- Dashboard com contagens, próximos agendamentos do dia, faturamento mensal e gráfico dos últimos sete dias, considerando atendimentos concluídos.
-- Busca, filtros e paginação local nas telas pertinentes, validações e estados de carregamento, erro e lista vazia.
-- Navegação lateral responsiva, com opções textuais, indicação da seção ativa e foco por teclado.
+```text
+React 18 + Vite  ──(Axios, session cookie + CSRF)──>  Laravel 12 REST API  ──>  SQLite (demo)
+   frontend/                                           backend/ (Sanctum)
+```
 
-O pagamento é um registro interno: não há processamento bancário, integração com adquirentes ou emissão fiscal. O faturamento soma valores de atendimentos concluídos, sem conciliação de recebimentos.
+```text
+backend/    Laravel API: controllers, form requests, models, migrations, seeders, tests
+frontend/   React client: features, shared components, pages, routes, services
+scripts/    Windows helpers: start, stop, verify, create a user
+docs/       Setup, backup, security and validation guides (Portuguese)
+```
 
-## Perfis de acesso
+## Features
 
-As permissões são aplicadas pela API, além dos controles da interface.
+- Session login and logout, CSRF protection, and blocking of inactive users.
+- Clients and pets with a record, history, and a six-digit public code for each pet.
+- Services with price, duration, and activation/deactivation by the administrator.
+- Appointments with confirmation, cancellation, and rescheduling with a reason, plus overlap checking for the same pet.
+- Visits (attendances), either walk-in or started from a confirmed appointment, with clinical notes, completion, and a recorded amount and payment method.
+- Dashboard with counters, today's upcoming appointments, monthly revenue, and a seven-day revenue chart, all based on completed visits.
+- Search, filters, and client-side pagination where relevant, with validation and loading, error, and empty states.
+- Responsive side navigation with text labels, active-section indication, and keyboard focus.
 
-| Operação | Administrador (`admin`) | Recepção (`receptionist`) | Veterinário (`veterinarian`) |
+Payment is an internal record only: there is no bank processing, no payment-provider integration, and no tax-document issuing. Revenue is the sum of completed visits and does not reconcile actual receipts.
+
+## Engineering notes
+
+- **Authorization lives in the API.** Laravel Gates and route middleware decide what each role may do. The interface mirrors those rules but is never the barrier.
+- **Role-based response redaction.** A middleware removes financial fields from veterinarian responses and clinical notes from receptionist responses, including nested histories.
+- **Safer scheduling.** The overlap check runs again inside the write transaction, with pessimistic row locking on database drivers that support it.
+- **Historical accuracy.** Appointments and visits keep the price and duration of the services at the time they were recorded, so later price changes do not rewrite past records.
+- **Isolated tests.** PHP tests run on in-memory SQLite and never touch the demo database.
+
+## Roles and permissions
+
+Permissions are enforced by the API in addition to the interface controls.
+
+| Operation | Administrator (`admin`) | Reception (`receptionist`) | Veterinarian (`veterinarian`) |
 | --- | --- | --- | --- |
-| Consultar, criar e editar clientes e pets | Sim | Sim | Sim |
-| Excluir clientes/pets sem vínculos impeditivos | Sim | Sim | Não |
-| Consultar serviços | Sim | Sim | Sim, sem preço |
-| Criar, editar e excluir/desativar serviços | Sim | Não | Não |
-| Consultar, criar e editar agendamentos | Sim | Sim | Sim |
-| Excluir agendamentos | Sim | Não | Não |
-| Consultar e iniciar atendimentos | Sim | Sim | Sim |
-| Editar evolução clínica e concluir atendimento | Sim | Não | Sim |
-| Registrar valores e pagamento; consultar faturamento | Sim | Sim | Não |
-| Excluir atendimentos | Não | Não | Não |
+| View, create, and edit clients and pets | Yes | Yes | Yes |
+| Delete clients/pets without blocking links | Yes | Yes | No |
+| View services | Yes | Yes | Yes, without price |
+| Create, edit, and delete/deactivate services | Yes | No | No |
+| View, create, and edit appointments | Yes | Yes | Yes |
+| Delete appointments | Yes | No | No |
+| View and start visits | Yes | Yes | Yes |
+| Edit clinical notes and complete a visit | Yes | No | Yes |
+| Record amounts and payment; view revenue | Yes | Yes | No |
+| Delete visits | No | No | No |
 
-A API remove campos financeiros das respostas do veterinário e a evolução clínica das respostas da recepção, inclusive em históricos aninhados. A ficha básica do pet, alergias e alertas operacionais são compartilhados pelos três perfis. A conclusão pelo veterinário exige evolução clínica; o administrador pode concluir sem essa exigência na regra atual. Atendimentos são registros permanentes.
+The basic pet record, allergies, and operational alerts are shared by all three roles. When a veterinarian completes a visit, a clinical note is required; under the current rule, an administrator may complete a visit without one. Visits are permanent records.
 
-## Capturas de tela do Projeto
+## Screenshots
 
-Capturas reais da interface fornecidas pelo proprietário, revisadas visualmente para publicação. Os exemplos exibem nomes genéricos; não foram identificados contatos pessoais, credenciais ou dados clínicos sensíveis. As imagens foram preservadas sem edição visual. Veja o [índice das capturas](docs/img/README.md) para o conteúdo de cada tela e os limites dessa evidência.
+Real screenshots of the interface, provided by the owner and reviewed before publication. The examples show generic names; no personal contact details, credentials, or sensitive clinical data were identified. The images are unedited. See the [screenshot index](docs/img/README.md) for what each screen shows and the limits of this evidence.
 
 ### Dashboard
 
-Indicadores operacionais e área financeira do perfil administrador.
+Operational indicators and the financial area of the administrator profile.
 
-![Dashboard administrativo do PetSystem V3](docs/img/dashboard.png)
+![PetSystem V3 administrator dashboard](docs/img/dashboard.png)
 
-### Agendamentos
+### Appointments
 
-Busca, filtro de data e listagem de agendamentos de exemplo.
+Search, date filter, and a list of sample appointments.
 
-![Agendamentos com busca e filtro de data](docs/img/agendamentos.png)
+![Appointments with search and date filter](docs/img/agendamentos.png)
 
-### Atendimentos
+### Visits
 
-Tela de atendimentos no estado de lista vazia, com acesso ao cadastro.
+The visits screen in its empty state, with access to the registration form.
 
-![Tela de atendimentos sem registros cadastrados](docs/img/atendimentos.png)
+![Visits screen with no records yet](docs/img/atendimentos.png)
 
 ### Pets
 
-Listagem de pets com código público, espécie, raça e tutor.
+Pet list with public code, species, breed, and owner.
 
-![Listagem de pets com tutores de exemplo](docs/img/pets.png)
+![Pet list with sample owners](docs/img/pets.png)
 
-### Perfil veterinário
+### Veterinarian profile
 
-Dashboard do veterinário, com indicadores operacionais e sem a área financeira.
+The veterinarian's dashboard, with operational indicators and no financial area.
 
-![Dashboard do perfil veterinário sem indicadores financeiros](docs/img/veterinario.png)
+![Veterinarian dashboard without financial indicators](docs/img/veterinario.png)
 
-## Instalação e configuração local
+## Getting started
 
-Requisitos: Windows com CMD, Git, PHP 8.2+ com as extensões exigidas pelo Composer e `pdo_sqlite`, Composer 2, Node.js e npm. O ambiente foi validado com Node 24. Os scripts locais esperam PHP em `C:\xampp\php\php.exe` e Node/npm no PATH.
+In the examples below, replace `C:\path\to\Petsystemv3` with the path to your copy of the project.
 
-Instale as dependências dos lockfiles, a partir desta cópia do projeto:
+### Requirements
+
+Windows with CMD, Git, PHP 8.2+ with the extensions Composer requires and `pdo_sqlite`, Composer 2, Node.js, and npm. The environment was validated with Node 24. The bundled scripts expect PHP at `C:\xampp\php\php.exe` and Node/npm on the `PATH`.
+
+### Install dependencies
+
+Install from the lockfiles, inside your copy of the project:
 
 ```bat
-cd /d C:\caminho\Petsystemv3\backend
+cd /d C:\path\to\Petsystemv3\backend
 composer install
 composer check-platform-reqs
 cd ..\frontend
 npm.cmd ci
 ```
 
-Em uma instalação nova, copie [backend/.env.demo.example](backend/.env.demo.example) para `backend/.env.demo`. Ajuste `DB_DATABASE` para o caminho absoluto de `backend/database/petsystem_demo.sqlite` **da sua cópia** e gere uma chave apenas se `APP_KEY` estiver vazia. Mantenha `APP_ENV=demo`, `DB_CONNECTION=sqlite` e `DB_URL` vazio. O `.env.demo` é privado e não acompanha o Git.
+### Configure the demo environment
 
-Siga o [guia de configuração](docs/setup.md) para preparar um banco novo ou verificar um existente. Preserve bancos e chaves já existentes; faça [backup](docs/backup.md) antes de atualizar uma demonstração com dados importantes. Não use `composer setup`, `migrate:fresh` ou seeders sobre o banco persistente existente.
+On a fresh installation, copy [backend/.env.demo.example](backend/.env.demo.example) to `backend/.env.demo`. Set `DB_DATABASE` to the absolute path of `backend/database/petsystem_demo.sqlite` **in your copy**, and generate an application key only if `APP_KEY` is empty. Keep `APP_ENV=demo`, `DB_CONNECTION=sqlite`, and an empty `DB_URL`. The `.env.demo` file is private and is not tracked by Git.
 
-### Inicialização em dois terminais CMD
+Follow the [setup guide](docs/setup.md) to prepare a new database or to check an existing one. Preserve existing databases and keys, and take a [backup](docs/backup.md) before updating a demo that holds important data. Do not run `composer setup`, `migrate:fresh`, or seeders against an existing persistent database.
 
-Com dependências, ambiente e banco já preparados, abra o terminal 1 para o Laravel:
+### Run with two CMD terminals
+
+Once dependencies, environment, and database are ready, start Laravel in terminal 1:
 
 ```bat
-cd /d C:\caminho\Petsystemv3\backend
+cd /d C:\path\to\Petsystemv3\backend
 C:\xampp\php\php.exe artisan --env=demo serve --host=127.0.0.1 --port=8000
 ```
 
-No terminal 2, inicie o React/Vite:
+Start React/Vite in terminal 2:
 
 ```bat
-cd /d C:\caminho\Petsystemv3\frontend
+cd /d C:\path\to\Petsystemv3\frontend
 set "PATH=C:\Program Files\nodejs;%PATH%"
 npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-Acesse `http://127.0.0.1:5173`; a API padrão fica em `http://127.0.0.1:8000/api`. Use o mesmo hostname durante a sessão. O caminho de Node acima corresponde à instalação validada; ajuste se necessário.
+Open `http://127.0.0.1:5173`; the API listens at `http://127.0.0.1:8000/api` by default. Use the same hostname for the whole session. The Node path above matches the validated installation; adjust it if needed. Press Ctrl+C in each terminal to stop the servers.
 
-O atalho `scripts\iniciar.bat` pode preparar um SQLite novo com dados fictícios e iniciar os servidores. Em banco existente, ele pode aplicar migrations pendentes; consulte o guia e faça backup antes de atualizar. Reutilize servidores da mesma cópia e ambiente. Para encerrar os iniciados manualmente, pressione Ctrl+C nos respectivos terminais.
+### Shortcut scripts
 
-Crie somente as contas necessárias com `scripts\criar-usuario.bat`, informando o perfil e digitando a senha no terminal. Não há senha padrão. O `.env` original e o banco histórico MySQL/MariaDB não são necessários à demonstração.
+`scripts\iniciar.bat` can prepare a fresh SQLite database with fictional data and start both servers. On an existing database it may apply pending migrations, so read the guide and back up first. It reuses servers from the same copy and environment.
 
-## Testes e build
+Create only the accounts you need with `scripts\criar-usuario.bat`, choosing the role and typing the password in the terminal. There is no default password. The original `.env` and the historical MySQL/MariaDB database are not needed for the demo.
 
-Na raiz, a verificação integrada protege o banco demo e usa SQLite em memória nos testes PHP:
+## Testing and build
+
+From the project root, the integrated check protects the demo database and runs the PHP tests on in-memory SQLite:
 
 ```bat
 set "PATH=C:\Program Files\nodejs;%PATH%"
 scripts\verificar.bat
 ```
 
-Para executar apenas os testes frontend e o build de produção:
+To run only the frontend tests and the production build:
 
 ```bat
-cd /d C:\caminho\Petsystemv3\frontend
+cd /d C:\path\to\Petsystemv3\frontend
 set "PATH=C:\Program Files\nodejs;%PATH%"
 node.exe --test
 npm.cmd run build
 ```
 
-`npm.cmd run verify` também executa os testes frontend seguidos do build. Os artefatos ficam em `frontend/dist`, ignorado pelo Git. Resultados e limites da validação estão no [relatório de homologação](docs/homologacao.md). O [checklist manual](docs/checklist-manual.md) cobre o aceite funcional por perfil.
+`npm.cmd run verify` also runs the frontend tests followed by the build. Build output goes to `frontend/dist`, which Git ignores. Results and the limits of validation are in the [validation report](docs/homologacao.md), and the [manual checklist](docs/checklist-manual.md) covers functional acceptance per role.
 
-## Documentação e manutenção
+## Documentation
 
-- [Instalação, ambiente demo e diagnóstico de inicialização](docs/setup.md).
-- [Backup e restauração do SQLite](docs/backup.md).
-- [Checklist de homologação manual](docs/checklist-manual.md).
-- [Resultados e pendências de homologação](docs/homologacao.md).
-- [Auditoria de dependências e pendências de segurança](docs/seguranca-dependencias.md).
+The guides below are written in Portuguese.
 
-Os scripts versionados atendem à inicialização, parada identificada dos servidores, criação interativa de usuários, inspeção somente leitura do demo e verificação do projeto. Não publique arquivos `.env`, SQLite, logs, backups, senhas ou dados reais do cliente.
+- [Installation, demo environment, and startup troubleshooting](docs/setup.md)
+- [SQLite backup and restore](docs/backup.md)
+- [Manual acceptance checklist](docs/checklist-manual.md)
+- [Validation results and open items](docs/homologacao.md)
+- [Dependency audit and security notes](docs/seguranca-dependencias.md)
 
-## Limitações conhecidas
+The versioned scripts cover starting the servers, stopping the identified servers, interactive user creation, a read-only inspection of the demo, and project verification. Never publish `.env` files, SQLite files, logs, backups, passwords, or real client data.
 
-- A demonstração local não equivale a produção homologada. Hospedagem, HTTPS, cookies seguros, debug desabilitado, infraestrutura e restauração real de backup exigem validação própria.
-- Listagens com paginação local não foram homologadas para grandes volumes ou alta concorrência.
-- A agenda verifica conflitos por pet; agenda por profissional, notificações e gestão de funcionários pela interface ficam para uma versão futura.
-- A auditoria registrada em 08/11/2026 mantém uma pendência moderada do React Router, descrita no documento de segurança. Não se presume que o build resolva essa pendência.
-- Capturas de tela demonstram a interface, mas não substituem os testes de autorização da API nem o aceite funcional completo.
+## Known limitations
 
-A release `v1.0.0` depende da homologação final e do aceite do proprietário. Este repositório não declara implantação ou prontidão de produção.
+- The local demo is not a validated production deployment. Hosting, HTTPS, secure cookies, disabled debug mode, infrastructure, and real backup restoration each need their own validation.
+- Client-side pagination has not been validated for large data volumes or high concurrency.
+- The schedule checks conflicts per pet. Scheduling per professional, notifications, and employee management through the interface are left for a future version.
+- The audit recorded on 2026-11-08 keeps one moderate React Router advisory open, described in the security document. Do not assume the build resolves it.
+- Screenshots demonstrate the interface; they do not replace the API authorization tests or full functional acceptance.
 
-[LinkedIn — Natan Da Luz](https://www.linkedin.com/in/natandaluz/)
+The `v1.0.0` release is subject to final validation and owner acceptance. This repository does not claim deployment or production readiness.
+
+## Roadmap
+
+- Define and validate the production environment: hosting, HTTPS, database, and backups.
+- User management through the administrator interface.
+- Scheduling per professional and internal notifications.
+- Upgrade React Router to a major version without the open advisory.
+
+## Author
+
+**Natan da Luz Cândido** — [LinkedIn](https://www.linkedin.com/in/natandaluz/)
