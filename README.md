@@ -4,7 +4,7 @@ Atenção: Nos exemplos, substitua C:\caminho\Petsystemv3 pelo caminho da sua c�
 
 Sistema web desenvolvido como projeto freelancer para apoiar a operação de um pet shop e clínica veterinária: cadastros de clientes e pets, serviços, agendamentos e atendimentos, com acesso separado para administração, recepção e veterinários.
 
-## Evolução do projeto
+## Evolução do Projeto
 
 O PetSystem V3 dá continuidade ao PetSystem V2. Esta versão reúne a aplicação atual em uma API Laravel e uma interface React, com autenticação por sessão, autorização no backend e ambiente demonstrativo com SQLite. O repositório apresenta o escopo implementado e suas evidências de validação; a homologação final permanece em andamento.
 
