@@ -4,7 +4,6 @@ A web application for a pet shop and veterinary clinic, built as a real freelanc
 
 [Português (Brasil)](README.pt-BR.md)
 
-> The user interface is in Brazilian Portuguese, and the guides under `docs/` are currently written in Portuguese.
 
 ## Table of contents about the project
 
