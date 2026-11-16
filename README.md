@@ -31,8 +31,8 @@ This repository documents the implemented scope together with its validation evi
 
 | Layer | Technologies |
 | --- | --- |
-| Backend | PHP 8.2+, Laravel 12, Laravel Sanctum 4 |
-| Frontend | React 18, React Router 6, Vite 6, Axios |
+| Backend | PHP, Laravel , Laravel Sanctum  |
+| Frontend | React , Vite , Axios |
 | Local demo database | SQLite |
 | Testing | PHPUnit 11 and `node:test` |
 
