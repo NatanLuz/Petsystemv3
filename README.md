@@ -21,7 +21,7 @@ A web application for a pet shop and veterinary clinic, built as a real freelanc
 - [Roadmap](#roadmap)
 - [Author](#author)
 
-## Overview
+## Overview geral about the project
 
 PetSystem V3 is the successor to PetSystem V2. It was rebuilt as a Laravel REST API and a separate React application, with session-based authentication, authorization enforced on the backend, and a SQLite demo environment.
 
